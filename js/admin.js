@@ -26,6 +26,62 @@ try{
 
 let filtroAtual = 'todos';
 
+/* ============ CARREGAR PRODUTOS DO SUPABASE ============ */
+async function carregarProdutos(){
+  if(!supabaseClient) return Store.get('galp_produtos', PRODUTOS_PADRAO);
+  try{
+    const { data, error } = await supabaseClient
+      .from('galp_produtos_config')
+      .select('*')
+      .order('id');
+
+    if(error) throw error;
+
+    const produtos = (data || []).map(p => ({
+      id: p.id,
+      nome: p.nome,
+      preco: Number(p.preco),
+      unidade: p.unidade,
+      desc: p.descricao,
+      icon: p.icon,
+      disponivel: p.disponivel
+    }));
+
+    Store.set('galp_produtos', produtos);
+    return produtos;
+  }catch(err){
+    console.error('❌ Erro produtos:', err);
+    return Store.get('galp_produtos', PRODUTOS_PADRAO);
+  }
+}
+
+/* ============ CARREGAR ESTAÇÕES DO SUPABASE ============ */
+async function carregarEstacoes(){
+  if(!supabaseClient) return (Store.get('galp_config', CONFIG).estacoes || []);
+  try{
+    const { data, error } = await supabaseClient
+      .from('galp_estacoes_config')
+      .select('*')
+      .order('id');
+
+    if(error) throw error;
+
+    const estacoes = (data || []).map(e => ({
+      id: e.id,
+      nome: e.nome,
+      endereco: e.endereco,
+      disponivel: e.disponivel
+    }));
+
+    const cfg = Store.get('galp_config', CONFIG);
+    cfg.estacoes = estacoes;
+    Store.set('galp_config', cfg);
+    return estacoes;
+  }catch(err){
+    console.error('❌ Erro estações:', err);
+    return (Store.get('galp_config', CONFIG).estacoes || []);
+  }
+}
 /* ============================================================
    CARREGAR PRODUTOS E ESTAÇÕES DO SUPABASE
    ============================================================ */
@@ -127,32 +183,28 @@ async function carregarPedidosDoServidor(){
   }
 }
 
-/* ============================================================
-   INIT
-   ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
   const app = $('#adminApp');
   if(app) app.style.visibility = 'visible';
 
   const d = new Date();
-  const dataFmt = d.toLocaleDateString('pt-PT', {
-    weekday:'long', day:'numeric', month:'long', year:'numeric'
-  });
+  const dataFmt = d.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const horaFmt = d.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'});
   if($('#welcomeDate')) $('#welcomeDate').textContent = `${dataFmt} · ${horaFmt}`;
 
-  // Carrega tudo do Supabase
+  // ⭐ Carrega do Supabase PRIMEIRO
   await carregarProdutos();
   await carregarEstacoes();
   await carregarPedidosDoServidor();
 
   renderTudo();
 
-  // Atualiza pedidos a cada 30s
+  // Atualiza a cada 30s
   setInterval(async () => {
-    await carregarPedidosDoServidor();
-    renderPendentes();
-    renderTabela();
+    await carregarProdutos();
+    await carregarEstacoes();
+    renderSwitches();
+    renderSwitchesEstacoes();
   }, 30000);
 });
 
@@ -170,7 +222,6 @@ function renderTudo(){
   renderTabela();
 }
 
-/* ============ SWITCHES COMBUSTÍVEIS ============ */
 function renderSwitches(){
   const lista = Store.get('galp_produtos', PRODUTOS_PADRAO);
   const el = $('#switchList');
@@ -195,7 +246,8 @@ function renderSwitches(){
   $$('[data-id]').forEach(chk => {
     chk.addEventListener('change', async () => {
       const novoEstado = chk.checked;
-      // 1) Grava no Supabase
+
+      // 1) GRAVA NO SUPABASE (servidor central)
       if(supabaseClient){
         const { error } = await supabaseClient
           .from('galp_produtos_config')
@@ -204,10 +256,11 @@ function renderSwitches(){
 
         if(error){
           console.error('❌', error);
-          alert('Erro ao guardar. Tenta novamente.');
-          chk.checked = !novoEstado;  // reverte
+          alert('Erro ao guardar no servidor. Tenta novamente.');
+          chk.checked = !novoEstado;
           return;
         }
+        console.log(`✅ Supabase: ${chk.dataset.id} → ${novoEstado ? 'ON' : 'OFF'}`);
       }
 
       // 2) Atualiza cache local
@@ -216,12 +269,10 @@ function renderSwitches(){
       if(p){ p.disponivel = novoEstado; Store.set('galp_produtos', lista); }
 
       renderSwitches();
-      console.log(`✅ ${chk.dataset.id} → ${novoEstado ? 'disponível' : 'indisponível'}`);
     });
   });
 }
 
-/* ============ SWITCHES ESTAÇÕES GALP ============ */
 function renderSwitchesEstacoes(){
   const cfg = Store.get('galp_config', CONFIG);
   const el = $('#switchEstacoes');
@@ -248,7 +299,8 @@ function renderSwitchesEstacoes(){
   $$('[data-estacao]').forEach(chk => {
     chk.addEventListener('change', async () => {
       const novoEstado = chk.checked;
-      // 1) Grava no Supabase
+
+      // 1) GRAVA NO SUPABASE
       if(supabaseClient){
         const { error } = await supabaseClient
           .from('galp_estacoes_config')
@@ -257,10 +309,11 @@ function renderSwitchesEstacoes(){
 
         if(error){
           console.error('❌', error);
-          alert('Erro ao guardar. Tenta novamente.');
+          alert('Erro ao guardar no servidor. Tenta novamente.');
           chk.checked = !novoEstado;
           return;
         }
+        console.log(`✅ Supabase: ${chk.dataset.estacao} → ${novoEstado ? 'ON' : 'OFF'}`);
       }
 
       // 2) Atualiza cache local
@@ -269,11 +322,9 @@ function renderSwitchesEstacoes(){
       if(est){ est.disponivel = novoEstado; Store.set('galp_config', cfg); }
 
       renderSwitchesEstacoes();
-      console.log(`✅ ${chk.dataset.estacao} → ${novoEstado ? 'disponível' : 'indisponível'}`);
     });
   });
 }
-
 /* ============ PEDIDOS PENDENTES ============ */
 function renderPendentes(){
   const pedidos = Store.get('galp_pedidos', []);

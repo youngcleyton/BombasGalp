@@ -101,7 +101,32 @@ async function renderProdutos(){
   const grid = $('#pdProdutos');
   if(!grid) return;
 
-  const produtos = await carregarProdutosDoSupabase();
+  let produtos = PRODUTOS_PADRAO;
+
+  //  LÊ DO SUPABASE
+  if(supabaseClient){
+    try{
+      const { data, error } = await supabaseClient
+        .from('galp_produtos_config')
+        .select('*')
+        .order('id');
+
+      if(!error && data?.length){
+        produtos = data.map(p => ({
+          id: p.id,
+          nome: p.nome,
+          preco: Number(p.preco),
+          unidade: p.unidade,
+          desc: p.descricao,
+          icon: p.icon,
+          disponivel: p.disponivel
+        }));
+        Store.set('galp_produtos', produtos);
+      }
+    }catch(err){
+      console.error('Erro produtos:', err);
+    }
+  }
 
   grid.innerHTML = produtos.map(p => `
     <div class="pd-prod ${p.disponivel ? '' : 'unavailable'}" data-id="${p.id}">
@@ -119,32 +144,8 @@ async function renderProdutos(){
   });
 }
 
-async function renderEstacoes(){
-  const cfg = getConfig();
-  const estacoes = await carregarEstacoesDoSupabase();
-  const el = $('#pdEstacoes');
-  if(!el) return;
-
-  el.innerHTML = estacoes.map(e => `
-    <div class="pd-estacao ${e.disponivel ? '' : 'unavailable'}" data-id="${e.id}">
-      <span class="pd-estacao-icon">⛽</span>
-      <div class="pd-estacao-info">
-        <b>${e.nome}</b>
-        <small>${e.endereco || ''}</small>
-      </div>
-      <span class="pd-estacao-status ${e.disponivel ? 'ok' : 'off'}">
-        ${e.disponivel ? '● Disponível' : '● Indisponível'}
-      </span>
-    </div>
-  `).join('');
-
-  el.querySelectorAll('.pd-estacao:not(.unavailable)').forEach(item => {
-    item.addEventListener('click', () => selecionarEstacao(item.dataset.id));
-  });
-}
-
 /* ============ PASSO 2: SELECIONAR PRODUTO ============ */
-function selecionarProduto(id){
+async function selecionarProduto(id){
   const p = getProdutos().find(x => x.id === id);
   if(!p || !p.disponivel) return;
 
@@ -174,11 +175,32 @@ function selecionarProduto(id){
 }
 
 /* ============ PASSO 3: ESTAÇÕES GALP ============ */
-function renderEstacoes(){
-  const cfg = getConfig();
+async function renderEstacoes(){
   const el = $('#pdEstacoes');
   if(!el) return;
-  const estacoes = cfg.estacoes || [];
+
+  let estacoes = (getConfig().estacoes || []);
+
+  //  LÊ DO SUPABASE
+  if(supabaseClient){
+    try{
+      const { data, error } = await supabaseClient
+        .from('galp_estacoes_config')
+        .select('*')
+        .order('id');
+
+      if(!error && data?.length){
+        estacoes = data.map(e => ({
+          id: e.id,
+          nome: e.nome,
+          endereco: e.endereco,
+          disponivel: e.disponivel
+        }));
+      }
+    }catch(err){
+      console.error('Erro estações:', err);
+    }
+  }
 
   el.innerHTML = estacoes.map(e => `
     <div class="pd-estacao ${e.disponivel ? '' : 'unavailable'}" data-id="${e.id}">
@@ -568,5 +590,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(produtoId){
     const p = (await carregarProdutosDoSupabase()).find(x => x.id === produtoId);
     if(p && p.disponivel) selecionarProduto(produtoId);
+    renderQtyInputs();
+    await renderEstacoes();
+    updateTotal();
   }
 });
