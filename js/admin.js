@@ -18,11 +18,18 @@ const Store = {
 /* ============ SUPABASE ============ */
 let supabaseClient = null;
 try{
-  if(window.supabase && CONFIG.supabase && CONFIG.supabase.url.includes('supabase.co')){
-    supabaseClient = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.key);
+  const supaCfg = (typeof CONFIG !== 'undefined' && CONFIG.supabase) ? CONFIG.supabase : null;
+
+  if(!window.supabase){
+    console.warn('⚠️ CDN do Supabase não carregou');
+  } else if(!supaCfg || !supaCfg.url || !supaCfg.key){
+    console.warn('⚠️ CONFIG.supabase está vazio ou em falta');
+    console.log('CONFIG.supabase =', supaCfg);
+  } else {
+    supabaseClient = window.supabase.createClient(supaCfg.url, supaCfg.key);
     console.log('✅ Admin ligado ao Supabase');
   }
-}catch(err){ console.error('❌', err); }
+}catch(err){ console.error('❌ Erro Supabase:', err); }
 
 let filtroAtual = 'todos';
 
