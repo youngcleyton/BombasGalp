@@ -289,7 +289,7 @@ function updateSpeedPrices(){
 
 function calcularEntrega(){
   const cfg = getConfig();
-  if(state.modo === 'levantamento') return cfg.entrega?.levantamento || 0;
+  if(state.modo === 'levantamento') return cfg.entrega?.levantamento || 30;
   const z = cfg.entrega?.zonas?.[state.zona];
   if(!z) return 0;
   const mult = state.velocidade === 'premium' ? (cfg.entrega?.premium?.multiplicador || 2) : 1;
@@ -419,56 +419,108 @@ function mostrarResumo(){
   const unidade = p.unidade?.split('/')?.[1] || 'L';
   const cfg = getConfig();
 
-  console.log('🔍 DEBUG resumo:');
-  console.log('  modo:', state.modo);
-  console.log('  zona:', state.zona);
-  console.log('  velocidade:', state.velocidade);
-  console.log('  subtotal:', subtotal);
-  console.log('  entrega:', entrega);
-  console.log('  total:', total);
+  // ══════════ BLOCO 1: COMBUSTÍVEL ══════════
+  const combustivelHTML = `
+    <div class="pd-resumo-titulo">⛽ Combustível</div>
+    <div class="pd-resumo-item">
+      <span>${p.nome} (${state.quantidade} ${unidade})</span>
+      <b>${subtotal} MT</b>
+    </div>
+  `;
 
-  let entregaLinhas = '';
+  // ══════════ BLOCO 2: TAXA ══════════
+  let taxaLinha = '';
   if(state.modo === 'levantamento'){
-    entregaLinhas = `
-      <div class="pd-resumo-item"><span>Modo</span><b>🏪 Levantamento</b></div>
+    taxaLinha = `
+      <div class="pd-resumo-titulo">🏪 Levantamento</div>
+      <div class="pd-resumo-item">
+        <span>Retirar na ${state.estacao.nome}</span>
+        <b>${entrega} MT</b>
+      </div>
     `;
   } else {
     const zonaNome = cfg.entrega?.zonas?.[state.zona]?.nome || '—';
     const tipo = state.velocidade === 'premium' ? '⚡ Premium' : '🚚 Normal';
-    entregaLinhas = `
-      <div class="pd-resumo-item"><span>Modo</span><b>🛵 Entrega</b></div>
-      <div class="pd-resumo-item"><span>Zona</span><b>${zonaNome}</b></div>
-      <div class="pd-resumo-item"><span>Tipo</span><b>${tipo}</b></div>
-      <div class="pd-resumo-item"><span>Endereço</span><b>${state.endereco}</b></div>
-      ${state.referencia ? `<div class="pd-resumo-item"><span>Referência</span><b>${state.referencia}</b></div>` : ''}
-      <div class="pd-resumo-item"><span>Taxa de entrega</span><b>${entrega} MT</b></div>
+    taxaLinha = `
+      <div class="pd-resumo-titulo">🛵 Entrega</div>
+      <div class="pd-resumo-item">
+        <span>Taxa de entrega (${zonaNome})</span>
+        <b>${entrega} MT</b>
+      </div>
+      <div class="pd-resumo-item">
+        <span>Tipo</span>
+        <b>${tipo}</b>
+      </div>
     `;
   }
 
   $('#pdResumoBody').innerHTML = `
-    <div class="pd-resumo-titulo">Produto</div>
-    <div class="pd-resumo-item"><span>Combustível</span><b>${p.nome}</b></div>
-    <div class="pd-resumo-item"><span>Quantidade</span><b>${state.quantidade} ${unidade}</b></div>
-    <div class="pd-resumo-item"><span>Preço</span><b>${p.preco} MT/${unidade}</b></div>
-    <div class="pd-resumo-item"><span>Subtotal</span><b>${subtotal} MT</b></div>
+    <!-- ESTAÇÃO -->
+    <div class="pd-resumo-titulo">🏪 Estação GALP</div>
+    <div class="pd-resumo-item">
+      <span>Posto</span>
+      <b>⛽ ${state.estacao.nome}</b>
+    </div>
+    <div class="pd-resumo-item">
+      <span>Endereço</span>
+      <b>${state.estacao.endereco || '—'}</b>
+    </div>
 
-    <div class="pd-resumo-titulo">Estação GALP</div>
-    <div class="pd-resumo-item"><span>Posto</span><b>⛽ ${state.estacao.nome}</b></div>
-    <div class="pd-resumo-item"><span>Endereço</span><b>${state.estacao.endereco || '—'}</b></div>
+    <!-- COMBUSTÍVEL -->
+    ${combustivelHTML}
 
-    <div class="pd-resumo-titulo">${state.modo === 'entrega' ? 'Entrega' : 'Levantamento'}</div>
-    ${entregaLinhas}
+    <!-- TAXA / ENTREGA -->
+    ${taxaLinha}
 
-    <div class="pd-resumo-titulo">Cliente</div>
-    <div class="pd-resumo-item"><span>Nome</span><b>${state.nome}</b></div>
-    <div class="pd-resumo-item"><span>Telefone</span><b>${state.telefone}</b></div>
+    <!-- ENDEREÇO (só se for entrega) -->
+    ${state.modo === 'entrega' ? `
+      <div class="pd-resumo-titulo">📍 Local de entrega</div>
+      <div class="pd-resumo-item">
+        <span>Endereço</span>
+        <b>${state.endereco}</b>
+      </div>
+      ${state.referencia ? `
+        <div class="pd-resumo-item">
+          <span>Referência</span>
+          <b>${state.referencia}</b>
+        </div>
+      ` : ''}
+    ` : ''}
 
-    ${entrega > 0 ? `<div class="pd-resumo-item"><span>Subtotal</span><b>${subtotal} MT</b></div>` : ''}
-    ${entrega > 0 ? `<div class="pd-resumo-item"><span>+ Taxa de entrega</span><b>${entrega} MT</b></div>` : ''}
+    <!-- CLIENTE -->
+    <div class="pd-resumo-titulo">👤 Cliente</div>
+    <div class="pd-resumo-item">
+      <span>Nome</span>
+      <b>${state.nome}</b>
+    </div>
+    <div class="pd-resumo-item">
+      <span>Telefone</span>
+      <b>${state.telefone}</b>
+    </div>
 
-    <div class="pd-resumo-item total"><span>TOTAL</span><b>${total} MT</b></div>
+    <!-- SEPARADOR + RESUMO DE CÁLCULO -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px dashed rgba(255,255,255,.15)"></div>
 
-    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+    <!-- SUBTOTAL -->
+    <div class="pd-resumo-item">
+      <span>Subtotal (${state.quantidade} ${unidade} × ${p.preco} MT)</span>
+      <b>${subtotal} MT</b>
+    </div>
+
+    <!-- TAXA -->
+    <div class="pd-resumo-item">
+      <span>${state.modo === 'entrega' ? 'Taxa de entrega' : 'Taxa de levantamento'}</span>
+      <b>${entrega > 0 ? entrega + ' MT' : '—'}</b>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="pd-resumo-item total">
+      <span>TOTAL</span>
+      <b>${total} MT</b>
+    </div>
+
+    <!-- BOTÕES -->
+    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
       <button id="pdEditar" style="
         flex:1;min-width:110px;padding:14px;border-radius:12px;
         background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
@@ -492,7 +544,29 @@ function mostrarResumo(){
 }
 
 /* ============ ENVIAR WHATSAPP ============ */
-async function enviarWhatsApp(){
+/* ============ ENVIAR WHATSAPP (com modal de aviso) ============ */
+function enviarWhatsApp(){
+  // Abre a modal em vez de enviar logo
+  abrirModalAviso();
+}
+
+/* ============ ABRIR MODAL DE AVISO ============ */
+function abrirModalAviso(){
+  const e = state.estacao;
+  if(!e) return;
+
+  $('#pdModalEstacaoNome').textContent = e.nome;
+  $('#pdModalEstacaoEndereco').textContent = e.endereco || '';
+  $('#pdModal').classList.add('active');
+}
+
+/* ============ FECHAR MODAL ============ */
+function fecharModalAviso(){
+  $('#pdModal').classList.remove('active');
+}
+
+/* ============ ENVIAR DE VERDADE (após modal) ============ */
+async function enviarWhatsAppFinal(){
   const cfg = getConfig();
   const p = state.produto;
   const subtotal = p.preco * state.quantidade;
@@ -526,6 +600,7 @@ async function enviarWhatsApp(){
     status: 'PENDENTE'
   };
 
+  // Guarda no Supabase
   if(supabaseClient){
     supabaseClient.from('pedidos_galp').insert([pedido]).then(({ error }) => {
       if(error) console.error('❌ Erro Supabase:', error);
@@ -537,7 +612,7 @@ async function enviarWhatsApp(){
     Store.set('galp_pedidos', pedidos);
   }
 
-  // ========== MENSAGEM WHATSAPP ==========
+  // WhatsApp
   const linhas = [
     cfg.mensagemWhatsApp || 'Olá, GALP Quelimane!',
     '',
@@ -561,11 +636,9 @@ async function enviarWhatsApp(){
     '',
     `TOTAL: ${total} MT`,
     '',
-    '⚠️ IMPORTANTE:',
-    'Tens até 1 hora para te deslocares à estação escolhida.',
-    'Apresenta este pedido ao frentista.',
+    '⚠️ Tenho 1 hora para me deslocar à estação escolhida.',
     '',
-    `Pedido realizado através do site da GALP Quelimane.`
+    'Pedido realizado através do site da GALP Quelimane.'
   ].filter(Boolean).join('\n');
 
   window.open(`https://wa.me/${cfg.whatsapp}?text=${encodeURIComponent(linhas)}`, '_blank');
@@ -579,6 +652,22 @@ $('#pdBtnContinuar')?.addEventListener('click', () => {
   } else {
     mostrarResumo();
   }
+});
+/* ============ EVENTOS DA MODAL ============ */
+document.addEventListener('DOMContentLoaded', () => {
+  $('#pdModalCancelar')?.addEventListener('click', fecharModalAviso);
+  $('#pdModalOk')?.addEventListener('click', () => {
+    fecharModalAviso();
+    enviarWhatsAppFinal();
+  });
+  // Fecha ao clicar no fundo escuro
+  $('#pdModal')?.addEventListener('click', e => {
+    if(e.target.id === 'pdModal') fecharModalAviso();
+  });
+  // Fecha com ESC
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') fecharModalAviso();
+  });
 });
 
 /* ============ INIT ============ */

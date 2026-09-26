@@ -435,3 +435,158 @@ input,select{font-family:inherit}
   .pd-section h2{font-size:16px}
   .pd-btn-continuar{padding:14px}
 }
+/* ============================================================
+   MODAL DE AVISO
+   ============================================================ */
+.pd-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(0,0,0,.85);
+  backdrop-filter:blur(6px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  animation:pdFadeIn .25s ease;
+}
+.pd-modal.active{display:flex}
+
+@keyframes pdFadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+.pd-modal-box{
+  background:linear-gradient(160deg,#1A0E05,#0D0603);
+  border:2px solid var(--laranja);
+  border-radius:20px;
+  padding:32px 26px;
+  max-width:420px;
+  width:100%;
+  text-align:center;
+  box-shadow:0 25px 60px rgba(0,0,0,.7),
+             0 0 40px rgba(255,102,0,.3);
+  animation:pdSlideUp .3s ease;
+}
+
+@keyframes pdSlideUp{
+  from{opacity:0;transform:translateY(30px) scale(.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.pd-modal-icon{
+  font-size:56px;
+  margin-bottom:12px;
+  animation:pdPulse 1.5s infinite;
+}
+
+@keyframes pdPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.15)}
+}
+
+.pd-modal-title{
+  font-family:var(--display);
+  font-size:22px;
+  letter-spacing:.5px;
+  color:var(--dourado);
+  margin-bottom:14px;
+  text-shadow:0 0 20px rgba(255,210,0,.4);
+}
+
+.pd-modal-text{
+  font-size:14px;
+  color:#E5E7EB;
+  line-height:1.6;
+  margin-bottom:16px;
+}
+
+.pd-modal-text b{
+  color:var(--laranja);
+  font-weight:800;
+}
+
+.pd-modal-estacao{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  background:rgba(255,102,0,.1);
+  border:1px solid rgba(255,102,0,.3);
+  border-radius:12px;
+  margin:16px 0;
+  text-align:left;
+}
+
+.pd-modal-estacao-icon{
+  font-size:28px;
+  flex-shrink:0;
+}
+
+.pd-modal-estacao b{
+  display:block;
+  font-size:15px;
+  color:#fff;
+  margin-bottom:3px;
+}
+
+.pd-modal-estacao small{
+  font-size:12px;
+  color:var(--cinza);
+}
+
+.pd-modal-destaque{
+  font-size:13px;
+  color:var(--dourado);
+  font-weight:600;
+  padding:10px;
+  background:rgba(255,210,0,.08);
+  border-radius:8px;
+  border-left:3px solid var(--dourado);
+  text-align:left;
+  margin-bottom:20px;
+}
+
+.pd-modal-botoes{
+  display:flex;
+  gap:10px;
+}
+
+.pd-modal-btn{
+  flex:1;
+  padding:14px;
+  border-radius:12px;
+  font-weight:800;
+  font-size:13px;
+  letter-spacing:.5px;
+  cursor:pointer;
+  transition:.25s;
+  border:none;
+}
+
+.pd-modal-cancelar{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+}
+.pd-modal-cancelar:hover{
+  background:rgba(255,255,255,.12);
+}
+
+.pd-modal-ok{
+  background:linear-gradient(135deg,var(--laranja),var(--vermelho));
+  color:#fff;
+  box-shadow:0 8px 20px rgba(255,102,0,.4);
+}
+.pd-modal-ok:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(255,102,0,.6);
+}
+
+@media (max-width:480px){
+  .pd-modal-box{padding:26px 20px}
+  .pd-modal-icon{font-size:48px}
+  .pd-modal-title{font-size:19px}
+  .pd-modal-botoes{flex-direction:column-reverse}
+}

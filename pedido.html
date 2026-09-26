@@ -186,7 +186,33 @@
   </div>
 
 </main>
+<!-- ============ MODAL DE AVISO ============ -->
+<div class="pd-modal" id="pdModal">
+  <div class="pd-modal-box">
+    <div class="pd-modal-icon">⏰</div>
+    <h2 class="pd-modal-title">ATENÇÃO — TEMPO LIMITE</h2>
+    <p class="pd-modal-text">
+      Após clicares em <b>ENTENDI</b>, tens até <b>1 HORA</b> para te deslocares à estação GALP escolhida.
+    </p>
 
+    <div class="pd-modal-estacao">
+      <div class="pd-modal-estacao-icon">⛽</div>
+      <div>
+        <b id="pdModalEstacaoNome">GALP Centro</b>
+        <small id="pdModalEstacaoEndereco">Av. Marginal, Centro</small>
+      </div>
+    </div>
+
+    <p class="pd-modal-text pd-modal-destaque">
+      Apresenta este pedido ao frentista quando chegares.
+    </p>
+
+    <div class="pd-modal-botoes">
+      <button class="pd-modal-btn pd-modal-cancelar" id="pdModalCancelar">Cancelar</button>
+      <button class="pd-modal-btn pd-modal-ok" id="pdModalOk">ENTENDI ✓</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/pedido.js"></script>

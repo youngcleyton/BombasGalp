@@ -47,7 +47,7 @@ const CONFIG = {
   entrega: {
     ativa: true,
     gratisAcimaDe: null,
-    levantamento: 0,
+    levantamento: 30,
     zonas: [
       { nome: "Centro de Quelimane", valor: 80,  tempo: "até 1 hora" },
       { nome: "Arredores",           valor: 60,  tempo: "até 1 hora" },
