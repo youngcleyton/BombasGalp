@@ -1,9 +1,4 @@
-/* ============================================================
-   GALP QUELIMANE — CONFIGURAÇÃO CENTRAL
-   ============================================================ */
-
 const CONFIG = {
-  // ============ IDENTIDADE GALP ============
   marca: {
     corPrincipal: "#FF6600",
     corSecundaria: "#E30613",
@@ -11,7 +6,6 @@ const CONFIG = {
     corClara: "#FFD200"
   },
 
-  // ============ EMPRESA ============
   empresa: {
     nome: "GALP Quelimane",
     slogan: "Energia que move Moçambique",
@@ -21,47 +15,42 @@ const CONFIG = {
     endereco: "Quelimane, Moçambique",
     horario: "Segunda a Domingo — 24 horas",
     email: "geral@galp-quelimane.co.mz",
-    telefone: "258871632577",
+    telefone: "25871632577",
     logo: "assets/images/galp-logo.png"
   },
 
   whatsapp: "258871632577",
 
-  // ============ LIMITE ============
   limite: {
     ativo: true,
     maxLitros: 20,
     mensagem: "Limite de 20L por pedido. Se quiser mais, faça novo pedido."
   },
 
-  // ============ PRAZO LEVANTAMENTO ============
   prazoLevantamento: {
     ativo: true,
     horas: 1,
     mensagem: "Tens até 1 hora para te deslocares à estação escolhida."
   },
 
-  // ============ ESTAÇÕES GALP ============
   estacoes: [
     { id: "galp_centro",    nome: "GALP Centro",    endereco: "Av. Marginal, Centro",   disponivel: true },
     { id: "galp_micaia",    nome: "GALP Micaia",    endereco: "Bairro Micaia",          disponivel: true },
     { id: "galp_sangarive", nome: "GALP Sangarive", endereco: "Estrada de Sangarive",   disponivel: true }
   ],
 
-  // ============ PREÇOS ============
   precos: {
     gasolina: 98,
     diesel: 120
   },
 
-  // ============ ENTREGA ============
   entrega: {
     ativa: true,
     gratisAcimaDe: null,
     levantamento: 0,
     zonas: [
-      { nome: "Centro de Quelimane", valor: 50,  tempo: "até 1 hora" },
-      { nome: "Arredores",           valor: 30,  tempo: "até 1 hora" },
+      { nome: "Centro de Quelimane", valor: 80,  tempo: "até 1 hora" },
+      { nome: "Arredores",           valor: 60,  tempo: "até 1 hora" },
       { nome: "Bairros próximos",    valor: 80,  tempo: "até 1 hora" },
       { nome: "Periferia",           valor: 120, tempo: "até 1 hora" }
     ],
@@ -86,7 +75,7 @@ const CONFIG = {
 
   mensagemWhatsApp: "Olá, GALP Quelimane! Gostaria de fazer um pedido de combustível.",
 
-  // ============ SUPABASE ============
+  // ⬇️⬇️⬇️ ESTA É A PARTE QUE FALTAVA ⬇️⬇️⬇️
   supabase: {
     url: "https://hqlxwegzkllpvqwwzhhw.supabase.co",
     key: "sb_publishable_DaVPlT1yggN8BHbBHxvx0g_-pZ4zb-c"
