@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Login — Bombas GALP</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/login.css"/>
+</head>
+<body>
+
+<div class="login-screen">
+  <div class="login-box">
+    <div class="login-logo"></div>
+    <h1>BOMBAS GALP</h1>
+    <p class="login-sub">Painel Administrativo · Quelimane</p>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="field">
+        <label>Utilizador</label>
+        <input type="text" id="loginUser" placeholder="admin" autofocus/>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="loginPass" placeholder="••••••••"/>
+      </div>
+      <button type="submit" class="btn-login">ENTRAR</button>
+      <p class="login-error" id="loginError"></p>
+    </form>
+
+    <a href="index.html" class="back-link">← Voltar ao site</a>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

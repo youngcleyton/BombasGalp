@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Painel — Bombas Galp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css"/>
+</head>
+<body>
+
+<!-- ⚠️ Se não estiver logado, o JS reenvia para login.html -->
+<div class="admin-app" id="adminApp" style="visibility:hidden">
+
+  <header class="admin-header">
+    <div class="brand-mini"> BOMBAS GALP · ADMIN</div>
+    <div style="display:flex;gap:10px">
+      <button id="resetBtn" class="btn-logout" style="background:rgba(255,210,0,.15);color:#FFD200">🔄 Recarregar preços</button>
+      <button id="logoutBtn" class="btn-logout">Sair</button>
+    </div>
+  </header>
+
+  <div class="welcome-banner">
+    <span>👋</span>
+    <div>
+      <b>Bem-vindo ao sistema!</b>
+      <small id="welcomeDate"></small>
+    </div>
+  </div>
+
+  <main class="admin-content">
+
+        <!-- ============ SWITCHES COMBUSTÍVEIS ============ -->
+    <section class="panel">
+      <h2>⛽ Combustíveis — Disponibilidade</h2>
+      <p class="hint">Liga ou desliga cada combustível</p>
+      <div id="switchList" class="switch-list"></div>
+    </section>
+
+    <!-- ============ SWITCHES ESTAÇÕES ============ -->
+    <section class="panel">
+      <h2>🏪 Estações GALP — Disponibilidade</h2>
+      <p class="hint">Liga ou desliga cada posto. Se desligares, o cliente não pode escolher.</p>
+      <div id="switchEstacoes" class="switch-list"></div>
+    </section>
+
+    <!-- ============ EXTRATO COMPLETO (tipo Excel, altura fixa) ============ -->
+<section class="panel panel-extrato">
+  <div class="panel-head">
+    <h2>📊 Extrato Completo de Pedidos</h2>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="count-badge green" id="totalRegistos">0 registos</span>
+      <button id="imprimirExtrato" class="btn-imprimir">🖨️ Extrato Completo</button>
+      <button id="imprimirMini" class="btn-imprimir">🖨️ Recibos Mini</button>
+       <button id="fecharDia" class="btn-fechar-dia">📅 Fechar o Dia</button>
+    <button id="apagarTudo" class="btn-apagar-tudo">🗑️ Apagar Tudo</button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <button class="filtro-btn active" data-filtro="todos">📋 Todos</button>
+    <button class="filtro-btn" data-filtro="PENDENTE">⏳ Pendentes</button>
+    <button class="filtro-btn" data-filtro="ENTREGUE">✅ Entregues</button>
+    <button class="filtro-btn" data-filtro="CANCELADO">❌ Cancelados</button>
+  </div>
+
+  <!-- Tabela com SCROLL interno e altura fixa -->
+  <div class="table-excel-wrap">
+    <table class="table-excel" id="tabelaPedidos">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ID</th>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Telefone</th>
+          <th>Produto</th>
+          <th>Qtd</th>
+          <th>Modo</th>
+          <th>Zona</th>
+          <th>Taxa</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaPedidosBody">
+        <tr><td colspan="13" class="empty">Sem pedidos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Rodapé fixo com TOTAL (fora do scroll) -->
+  <div class="tabela-total-rodape">
+    <span>TOTAL GERAL:</span>
+    <b id="totalGeral">0 MT</b>
+  </div>
+</section>
+
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

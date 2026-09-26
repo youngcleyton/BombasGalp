@@ -1,0 +1,460 @@
+/* ============================================================
+   GALP QUELIMANE — ADMIN
+   Paleta: laranja + vermelho + dourado
+   ============================================================ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',sans-serif;
+  background:#050201;color:#fff;min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ============ APP ============ */
+.admin-app{min-height:100vh;display:flex;flex-direction:column}
+
+.admin-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 24px;
+  background:#1A0E05;
+  border-bottom:1px solid rgba(255,102,0,.2);
+  position:sticky;top:0;z-index:20;
+}
+.brand-mini{
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;letter-spacing:.5px;font-weight:700;
+  color:#fff;
+}
+.btn-logout{
+  padding:8px 16px;
+  background:rgba(255,102,0,.2);
+  border-radius:8px;
+  color:#fff;font-weight:600;font-size:13px;
+  transition:.2s;cursor:pointer;border:none;
+}
+.btn-logout:hover{background:#FF6600}
+
+/* ============ BOAS-VINDAS ============ */
+.welcome-banner{
+  display:flex;align-items:center;gap:16px;
+  margin:20px auto 0;max-width:900px;width:calc(100% - 40px);
+  padding:18px 24px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(255,102,0,.15),rgba(227,6,19,.1));
+  border:1px solid rgba(255,102,0,.3);
+  animation:fadeIn .5s ease;
+}
+.welcome-banner span{font-size:32px}
+.welcome-banner b{
+  display:block;font-family:'Rajdhani',sans-serif;
+  font-size:20px;color:#FFD200;letter-spacing:.3px;
+}
+.welcome-banner small{
+  color:#B8A595;font-size:13px;text-transform:capitalize;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ CONTEÚDO ============ */
+.admin-content{
+  max-width:900px;margin:0 auto;
+  padding:24px;width:100%;
+}
+
+.panel{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,102,0,.15);
+  border-radius:16px;
+  padding:24px;margin-bottom:24px;
+}
+.panel h2{
+  font-family:'Rajdhani',sans-serif;
+  font-size:19px;margin-bottom:6px;
+}
+.panel .hint{color:#B8A595;font-size:13px;margin-bottom:20px}
+
+.panel-head{
+  display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:6px;
+  flex-wrap:wrap;gap:10px;
+}
+
+.count-badge{
+  background:rgba(255,210,0,.15);
+  color:#FFD200;
+  padding:4px 12px;border-radius:100px;
+  font-size:12px;font-weight:700;
+  border:1px solid rgba(255,210,0,.3);
+}
+.count-badge.green{
+  background:rgba(0,200,83,.15);color:#00C853;
+  border-color:rgba(0,200,83,.3);
+}
+.count-badge.red{
+  background:rgba(227,6,19,.15);color:#FF5A5A;
+  border-color:rgba(227,6,19,.3);
+}
+
+.btn-clear{
+  padding:8px 14px;
+  background:rgba(227,6,19,.25);
+  border-radius:8px;color:#FF8080;
+  font-weight:600;font-size:12px;
+  transition:.2s;cursor:pointer;border:none;
+}
+.btn-clear:hover{background:#E30613;color:#fff}
+
+/* ============ SWITCHES ============ */
+.switch-list{display:flex;flex-direction:column;gap:12px}
+
+.switch-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px;
+  background:rgba(0,0,0,.3);
+  border-radius:12px;
+  border:1px solid rgba(255,102,0,.08);
+}
+.switch-info{display:flex;align-items:center;gap:14px}
+.sw-icon{font-size:26px}
+.switch-info b{display:block;font-size:15px}
+.switch-info small{color:#B8A595;font-size:12px}
+
+.switch{
+  position:relative;width:52px;height:28px;
+  display:inline-block;cursor:pointer;
+}
+.switch input{display:none}
+.switch .slider{
+  position:absolute;inset:0;
+  background:#374151;border-radius:100px;
+  transition:.25s;
+}
+.switch .slider::before{
+  content:"";position:absolute;
+  width:22px;height:22px;border-radius:50%;
+  background:#fff;top:3px;left:3px;transition:.25s;
+}
+.switch input:checked + .slider{
+  background:#00C853;
+  box-shadow:0 0 12px rgba(0,200,83,.6);
+}
+.switch input:checked + .slider::before{transform:translateX(24px)}
+
+/* ============ RECEIPTS ============ */
+.receipts-container{display:flex;flex-direction:column;gap:16px}
+
+.empty{
+  text-align:center;color:#B8A595;
+  padding:30px;font-size:14px;
+}
+
+.receipt{
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,102,0,.1);
+  border-radius:12px;overflow:hidden;
+  transition:.2s;
+}
+.receipt.pending:hover{border-color:rgba(255,102,0,.35)}
+
+.receipt-head{
+  display:flex;justify-content:space-between;
+  padding:12px 16px;
+  background:rgba(255,102,0,.08);
+  border-bottom:1px dashed rgba(255,102,0,.25);
+  font-size:12px;color:#B8A595;
+}
+.receipt-id{
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;color:#FFD200;font-weight:700;
+}
+
+.receipt-body{padding:14px 16px}
+
+.receipt-row{
+  display:flex;justify-content:space-between;
+  padding:6px 0;font-size:13px;
+  border-bottom:1px dashed rgba(255,255,255,.05);
+}
+.receipt-row:last-child{border-bottom:none}
+.receipt-row span{color:#B8A595}
+.receipt-row b{color:#fff}
+
+.receipt-row.total{
+  padding-top:12px;margin-top:6px;
+  border-top:2px solid rgba(255,210,0,.35);
+}
+.receipt-row.total b{
+  color:#FFD200;font-size:20px;
+  font-family:'Rajdhani',sans-serif;
+}
+
+.receipt-foot{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;
+  background:rgba(0,0,0,.3);
+  border-top:1px solid rgba(255,255,255,.06);
+  flex-wrap:wrap;
+}
+.status-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.action-buttons{
+  margin-left:auto;display:flex;
+  gap:8px;align-items:center;flex-wrap:wrap;
+}
+
+.mini-select{
+  padding:6px 10px;border-radius:6px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.1);
+  color:#fff;font-size:12px;outline:none;
+}
+.mini-select:focus{border-color:#FFD200}
+
+.btn-action{
+  padding:8px 14px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  letter-spacing:.5px;transition:.2s;
+  cursor:pointer;border:none;
+}
+.btn-entregue{
+  background:linear-gradient(135deg,#00C853,#00A843);
+  color:#fff;
+}
+.btn-entregue:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(0,200,83,.4);
+}
+.btn-cancelar{
+  background:rgba(227,6,19,.25);
+  color:#FF8080;
+  border:1px solid rgba(227,6,19,.5);
+}
+.btn-cancelar:hover{background:#E30613;color:#fff}
+
+/* ============ TABELA EXCEL ============ */
+.panel-extrato{padding:20px}
+
+.filtros{
+  display:flex;flex-wrap:wrap;
+  gap:6px;margin:12px 0 14px;
+}
+.filtro-btn{
+  padding:7px 13px;border-radius:100px;
+  font-size:12px;font-weight:600;
+  background:rgba(255,102,0,.08);
+  border:1px solid rgba(255,102,0,.25);
+  color:#B8A595;
+  transition:.2s;cursor:pointer;
+}
+.filtro-btn:hover{
+  background:rgba(255,102,0,.18);color:#fff;
+}
+.filtro-btn.active{
+  background:linear-gradient(135deg,#FF6600,#E30613);
+  color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(255,102,0,.35);
+}
+
+.table-excel-wrap{
+  height:340px;
+  overflow-y:auto;
+  overflow-x:auto;
+  border-radius:10px;
+  border:1px solid rgba(255,102,0,.15);
+  background:rgba(0,0,0,.25);
+  position:relative;
+}
+.table-excel-wrap::-webkit-scrollbar{width:8px;height:8px}
+.table-excel-wrap::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
+.table-excel-wrap::-webkit-scrollbar-thumb{
+  background:linear-gradient(135deg,#FF6600,#E30613);
+  border-radius:4px;
+}
+
+.table-excel{
+  width:100%;border-collapse:separate;
+  border-spacing:0;font-size:12px;min-width:1100px;
+}
+.table-excel thead th{
+  position:sticky;top:0;z-index:3;
+  background:#1A0E05;
+  color:#FFD200;
+  padding:10px 8px;text-align:left;
+  font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;font-weight:700;
+  border-bottom:2px solid rgba(255,210,0,.3);
+  white-space:nowrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+.table-excel tbody td{
+  padding:9px 8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  color:#E5E7EB;vertical-align:middle;
+  white-space:nowrap;
+  background:#050201;
+}
+.table-excel tbody tr:nth-child(even) td{
+  background:rgba(255,102,0,.05);
+}
+.table-excel tbody tr:hover td{
+  background:rgba(255,102,0,.15);
+}
+
+.table-excel .badge{
+  padding:3px 8px;border-radius:100px;
+  font-size:10px;font-weight:700;letter-spacing:.3px;
+}
+.badge-pendente{
+  background:rgba(255,210,0,.15);color:#FFD200;
+  border:1px solid rgba(255,210,0,.35);
+}
+.badge-entregue{
+  background:rgba(0,200,83,.15);color:#00C853;
+  border:1px solid rgba(0,200,83,.35);
+}
+.badge-cancelado{
+  background:rgba(227,6,19,.15);color:#FF5A5A;
+  border:1px solid rgba(227,6,19,.35);
+}
+
+.icon-btn-mini{
+  padding:5px 9px;border-radius:6px;
+  background:rgba(255,102,0,.15);
+  color:#FF6600;font-size:13px;
+  border:1px solid rgba(255,102,0,.3);
+  cursor:pointer;transition:.2s;
+}
+.icon-btn-mini:hover{background:#FF6600;color:#fff}
+
+/* Rodapé com total */
+.tabela-total-rodape{
+  display:flex;justify-content:flex-end;align-items:center;
+  gap:12px;padding:14px 18px;margin-top:10px;
+  background:linear-gradient(135deg,rgba(26,14,5,.95),rgba(227,6,19,.15));
+  border:1px solid rgba(255,210,0,.25);
+  border-radius:10px;
+  font-family:'Rajdhani',sans-serif;
+}
+.tabela-total-rodape span{
+  font-size:13px;letter-spacing:2px;
+  color:#B8A595;font-weight:700;
+}
+.tabela-total-rodape b{
+  font-size:22px;color:#FFD200;
+  font-weight:800;
+  text-shadow:0 0 15px rgba(255,210,0,.4);
+}
+
+/* ============ BOTÕES IMPRESSÃO ============ */
+.btn-imprimir{
+  padding:9px 16px;border-radius:8px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(135deg,#FF6600,#1A0E05);
+  color:#fff;border:none;cursor:pointer;
+  transition:.2s;
+  box-shadow:0 4px 14px rgba(255,102,0,.35);
+}
+.btn-imprimir:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(255,102,0,.5);
+}
+
+.btn-imprimir-mini{
+  padding:7px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;
+  background:linear-gradient(135deg,#FF6600,#1A0E05);
+  color:#fff;border:none;cursor:pointer;
+  transition:.2s;
+}
+.btn-imprimir-mini:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(255,102,0,.4);
+}
+
+/* ============ BOTÕES MINI TABELA ============ */
+.acoes-linha{
+  display:flex;gap:4px;align-items:center;
+  justify-content:center;white-space:nowrap;
+}
+.btn-mini{
+  width:28px;height:28px;border-radius:6px;
+  font-size:13px;font-weight:700;
+  border:none;cursor:pointer;transition:.2s;
+  display:inline-flex;align-items:center;
+  justify-content:center;padding:0;
+}
+.btn-entregue-mini{
+  background:rgba(0,200,83,.15);color:#00C853;
+  border:1px solid rgba(0,200,83,.4);
+}
+.btn-entregue-mini:hover{
+  background:#00C853;color:#fff;transform:scale(1.1);
+}
+.btn-cancelar-mini{
+  background:rgba(227,6,19,.25);color:#FF5A5A;
+  border:1px solid rgba(227,6,19,.5);
+}
+.btn-cancelar-mini:hover{
+  background:#E30613;color:#fff;transform:scale(1.1);
+}
+.btn-imprimir-mini{
+  background:rgba(255,102,0,.15);color:#FF6600;
+  border:1px solid rgba(255,102,0,.4);
+}
+.btn-imprimir-mini:hover{
+  background:#FF6600;color:#fff;transform:scale(1.1);
+}
+.txt-final{
+  font-size:10px;font-weight:700;
+  letter-spacing:.5px;color:#B8A595;padding:0 4px;
+}
+
+/* ============ FECHAR DIA / APAGAR ============ */
+.btn-fechar-dia{
+  padding:9px 16px;border-radius:8px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(135deg,#FFD200,#FFA000);
+  color:#1A0E05;border:none;cursor:pointer;
+  transition:.2s;
+  box-shadow:0 4px 14px rgba(255,210,0,.35);
+}
+.btn-fechar-dia:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(255,210,0,.55);
+}
+
+.btn-apagar-tudo{
+  padding:9px 16px;border-radius:8px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(135deg,#E30613,#B00410);
+  color:#fff;border:none;cursor:pointer;
+  transition:.2s;
+  box-shadow:0 4px 14px rgba(227,6,19,.35);
+}
+.btn-apagar-tudo:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(227,6,19,.55);
+}
+
+/* ============ RESPONSIVO ============ */
+@media (max-width:640px){
+  .admin-header{padding:12px 16px;flex-wrap:wrap;gap:8px}
+  .brand-mini{font-size:13px}
+  .btn-logout{padding:6px 12px;font-size:11px}
+  .admin-content{padding:16px}
+  .panel{padding:18px}
+  .welcome-banner{width:calc(100% - 32px);padding:14px 18px}
+  .welcome-banner span{font-size:26px}
+  .welcome-banner b{font-size:17px}
+  .receipt-foot{flex-direction:column;align-items:flex-start}
+  .action-buttons{margin-left:0;width:100%}
+  .btn-action{flex:1}
+  .table-excel{font-size:12px}
+  .table-excel th,.table-excel td{padding:8px}
+  .table-excel-wrap{height:280px}
+  .tabela-total-rodape b{font-size:18px}
+  .panel-extrato{padding:14px}
+  .btn-imprimir{padding:7px 12px;font-size:11px}
+  .btn-fechar-dia,.btn-apagar-tudo{padding:7px 12px;font-size:11px}
+}
