@@ -42,11 +42,66 @@ function arredondar(v){
   return (c - i) >= 0.5 ? i + 1 : i;
 }
 
-/* ============ PASSO 1: COMBUSTÍVEIS ============ */
-function renderProdutos(){
+async function carregarProdutosDoSupabase(){
+  if(!supabaseClient) return getProdutos();
+  try{
+    const { data, error } = await supabaseClient
+      .from('galp_produtos_config')
+      .select('*')
+      .order('id');
+
+    if(error) throw error;
+
+    const produtos = (data || []).map(p => ({
+      id: p.id,
+      nome: p.nome,
+      preco: Number(p.preco),
+      unidade: p.unidade,
+      desc: p.descricao,
+      icon: p.icon,
+      disponivel: p.disponivel
+    }));
+
+    Store.set('galp_produtos', produtos);
+    return produtos;
+  }catch(err){
+    console.error('❌ Erro:', err);
+    return getProdutos();
+  }
+}
+
+async function carregarEstacoesDoSupabase(){
+  if(!supabaseClient) return (getConfig().estacoes || []);
+  try{
+    const { data, error } = await supabaseClient
+      .from('galp_estacoes_config')
+      .select('*')
+      .order('id');
+
+    if(error) throw error;
+
+    const estacoes = (data || []).map(e => ({
+      id: e.id,
+      nome: e.nome,
+      endereco: e.endereco,
+      disponivel: e.disponivel
+    }));
+
+    const cfg = getConfig();
+    cfg.estacoes = estacoes;
+    Store.set('galp_config', cfg);
+    return estacoes;
+  }catch(err){
+    console.error('❌ Erro estações:', err);
+    return (getConfig().estacoes || []);
+  }
+}
+
+async function renderProdutos(){
   const grid = $('#pdProdutos');
   if(!grid) return;
-  const produtos = getProdutos();
+
+  const produtos = await carregarProdutosDoSupabase();
 
   grid.innerHTML = produtos.map(p => `
     <div class="pd-prod ${p.disponivel ? '' : 'unavailable'}" data-id="${p.id}">
@@ -61,6 +116,30 @@ function renderProdutos(){
 
   grid.querySelectorAll('.pd-prod:not(.unavailable)').forEach(el => {
     el.addEventListener('click', () => selecionarProduto(el.dataset.id));
+  });
+}
+
+async function renderEstacoes(){
+  const cfg = getConfig();
+  const estacoes = await carregarEstacoesDoSupabase();
+  const el = $('#pdEstacoes');
+  if(!el) return;
+
+  el.innerHTML = estacoes.map(e => `
+    <div class="pd-estacao ${e.disponivel ? '' : 'unavailable'}" data-id="${e.id}">
+      <span class="pd-estacao-icon">⛽</span>
+      <div class="pd-estacao-info">
+        <b>${e.nome}</b>
+        <small>${e.endereco || ''}</small>
+      </div>
+      <span class="pd-estacao-status ${e.disponivel ? 'ok' : 'off'}">
+        ${e.disponivel ? '● Disponível' : '● Indisponível'}
+      </span>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.pd-estacao:not(.unavailable)').forEach(item => {
+    item.addEventListener('click', () => selecionarEstacao(item.dataset.id));
   });
 }
 
@@ -481,13 +560,13 @@ $('#pdBtnContinuar')?.addEventListener('click', () => {
 });
 
 /* ============ INIT ============ */
-document.addEventListener('DOMContentLoaded', () => {
-  renderProdutos();
+document.addEventListener('DOMContentLoaded', async () => {
+  await renderProdutos();
 
   const params = new URLSearchParams(window.location.search);
   const produtoId = params.get('produto');
   if(produtoId){
-    const p = getProdutos().find(x => x.id === produtoId);
+    const p = (await carregarProdutosDoSupabase()).find(x => x.id === produtoId);
     if(p && p.disponivel) selecionarProduto(produtoId);
   }
 });
