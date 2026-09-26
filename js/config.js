@@ -1,17 +1,3 @@
-// ============ VERSÃO DO CONFIG ============
-// ⚠️ AUMENTA ESTE NÚMERO sempre que mudares o config.js
-const CONFIG_VERSION = 1;
-
-// Limpa localStorage automaticamente se a versão for antiga
-(function sincronizarVersao(){
-  const versaoGuardada = parseInt(localStorage.getItem('exito_config_version') || '0');
-  if(versaoGuardada !== CONFIG_VERSION){
-    localStorage.removeItem('exito_config');
-    localStorage.removeItem('exito_produtos');
-    localStorage.setItem('exito_config_version', CONFIG_VERSION);
-    console.log('🔄 Config atualizado para versão', CONFIG_VERSION);
-  }
-})();
 /* ============================================================
    GALP QUELIMANE — CONFIGURAÇÃO CENTRAL
    ============================================================ */
@@ -35,11 +21,11 @@ const CONFIG = {
     endereco: "Quelimane, Moçambique",
     horario: "Segunda a Domingo — 24 horas",
     email: "geral@galp-quelimane.co.mz",
-    telefone: "258XXXXXXXXX",
+    telefone: "258871632577",
     logo: "assets/images/galp-logo.png"
   },
 
-  whatsapp: "258XXXXXXXXX",
+  whatsapp: "258871632577",
 
   // ============ LIMITE ============
   limite: {
@@ -65,7 +51,7 @@ const CONFIG = {
   // ============ PREÇOS ============
   precos: {
     gasolina: 98,
-    diesel: 120,
+    diesel: 120
   },
 
   // ============ ENTREGA ============
@@ -100,14 +86,16 @@ const CONFIG = {
 
   mensagemWhatsApp: "Olá, GALP Quelimane! Gostaria de fazer um pedido de combustível.",
 
+  // ============ SUPABASE ============
   supabase: {
-    
+    url: "https://hqlxwegzkllpvqwwzhhw.supabase.co",
+    key: "sb_publishable_DaVPlT1yggN8BHbBHxvx0g_-pZ4zb-c"
   }
 };
 
 const PRODUTOS_PADRAO = [
-  { id: "gasolina",     nome: "Gasolina",     preco: 98,  unidade: "MT/L",  disponivel: true, icon: "⛽",  desc: "Gasolina 95" },
-  { id: "diesel",       nome: "Diesel",       preco: 120, unidade: "MT/L",  disponivel: true, icon: "🛢️", desc: "Gasóleo rodoviário" },
+  { id: "gasolina", nome: "Gasolina", preco: 98,  unidade: "MT/L", disponivel: true, icon: "⛽",  desc: "Gasolina 95" },
+  { id: "diesel",   nome: "Diesel",   preco: 120, unidade: "MT/L", disponivel: true, icon: "🛢️", desc: "Gasóleo rodoviário" }
 ];
 
 window.CONFIG = CONFIG;
