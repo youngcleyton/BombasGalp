@@ -1,10 +1,11 @@
 /* ============================================================
-   GALP QUELIMANE — PÁGINA DE PEDIDO
+   GALP QUELIMANE — PEDIDO
+   Modo: SÓ RETIRADA (cliente escolhe estação)
    ============================================================ */
 
 const Store = {
   get(k,fb){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):fb; }catch{ return fb; } },
-  set(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 
 function getProdutos(){ return Store.get('galp_produtos', PRODUTOS_PADRAO); }
@@ -14,7 +15,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const fmtMT = v => `${Number(v||0)} MT`;
 
-/* Supabase */
+/* ============ SUPABASE ============ */
 let supabaseClient = null;
 try{
   if(window.supabase && CONFIG.supabase && CONFIG.supabase.url.includes('supabase.co')){
@@ -23,87 +24,21 @@ try{
   }
 }catch(err){ console.error('❌', err); }
 
+/* ============ ESTADO ============ */
 const state = {
   produto: null,
   quantidade: 1,
-  estacao: null,       // ⭐ novo
-  modo: 'entrega',
-  velocidade: 'normal',
-  zona: 0,
-  endereco: '',
-  referencia: '',
-  nome: '',
-  telefone: ''
+  estacao: null
 };
 
-function arredondar(v){
-  const c = Math.round(v*100)/100;
-  const i = Math.floor(c);
-  return (c - i) >= 0.5 ? i + 1 : i;
-}
-
-async function carregarProdutosDoSupabase(){
-  if(!supabaseClient) return getProdutos();
-  try{
-    const { data, error } = await supabaseClient
-      .from('galp_produtos_config')
-      .select('*')
-      .order('id');
-
-    if(error) throw error;
-
-    const produtos = (data || []).map(p => ({
-      id: p.id,
-      nome: p.nome,
-      preco: Number(p.preco),
-      unidade: p.unidade,
-      desc: p.descricao,
-      icon: p.icon,
-      disponivel: p.disponivel
-    }));
-
-    Store.set('galp_produtos', produtos);
-    return produtos;
-  }catch(err){
-    console.error('❌ Erro:', err);
-    return getProdutos();
-  }
-}
-
-async function carregarEstacoesDoSupabase(){
-  if(!supabaseClient) return (getConfig().estacoes || []);
-  try{
-    const { data, error } = await supabaseClient
-      .from('galp_estacoes_config')
-      .select('*')
-      .order('id');
-
-    if(error) throw error;
-
-    const estacoes = (data || []).map(e => ({
-      id: e.id,
-      nome: e.nome,
-      endereco: e.endereco,
-      disponivel: e.disponivel
-    }));
-
-    const cfg = getConfig();
-    cfg.estacoes = estacoes;
-    Store.set('galp_config', cfg);
-    return estacoes;
-  }catch(err){
-    console.error('❌ Erro estações:', err);
-    return (getConfig().estacoes || []);
-  }
-}
-
+/* ============ RENDER PRODUTOS ============ */
 async function renderProdutos(){
   const grid = $('#pdProdutos');
   if(!grid) return;
 
   let produtos = PRODUTOS_PADRAO;
 
-  //  LÊ DO SUPABASE
+  // Lê do Supabase
   if(supabaseClient){
     try{
       const { data, error } = await supabaseClient
@@ -123,9 +58,7 @@ async function renderProdutos(){
         }));
         Store.set('galp_produtos', produtos);
       }
-    }catch(err){
-      console.error('Erro produtos:', err);
-    }
+    }catch(err){ console.error('❌ Produtos:', err); }
   }
 
   grid.innerHTML = produtos.map(p => `
@@ -144,8 +77,8 @@ async function renderProdutos(){
   });
 }
 
-/* ============ PASSO 2: SELECIONAR PRODUTO ============ */
-async function selecionarProduto(id){
+/* ============ SELECIONAR PRODUTO ============ */
+function selecionarProduto(id){
   const p = getProdutos().find(x => x.id === id);
   if(!p || !p.disponivel) return;
 
@@ -154,34 +87,32 @@ async function selecionarProduto(id){
 
   $$('.pd-prod').forEach(el => el.classList.toggle('selected', el.dataset.id === id));
 
-  $('#pdIcon').textContent = p.icon || '⛽';
-  $('#pdNome').textContent = p.nome;
-  $('#pdPreco').textContent = `${p.preco} MT/${p.unidade?.split('/')?.[1] || 'L'}`;
-  $('#pdQtyUnit').textContent = p.unidade?.split('/')?.[1] || 'L';
+  const unidade = p.unidade?.split('/')?.[1] || 'L';
+  if($('#pdIcon'))     $('#pdIcon').textContent     = p.icon || '⛽';
+  if($('#pdNome'))     $('#pdNome').textContent     = p.nome;
+  if($('#pdPreco'))    $('#pdPreco').textContent    = `${p.preco} MT/${unidade}`;
+  if($('#pdQtyUnit'))  $('#pdQtyUnit').textContent  = unidade;
 
   renderQtyInputs();
-  renderEstacoes();        // ⭐ novo
+  renderEstacoes();
   updateTotal();
 
-  $('#pdSectionQty').hidden = false;
-  $('#pdSectionEstacao').hidden = false;   // ⭐ mostra secção
-  $('#pdSectionEntrega').hidden = true;    // será mostrado depois de escolher estação
-  $('#pdSectionDados').hidden = false;
-  $('#pdSectionResumo').hidden = true;
+  if($('#pdSectionQty'))      $('#pdSectionQty').hidden = false;
+  if($('#pdSectionEstacao'))  $('#pdSectionEstacao').hidden = false;
 
   setTimeout(() => {
     $('#pdSectionQty')?.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
+  }, 150);
 }
 
-/* ============ PASSO 3: ESTAÇÕES GALP ============ */
+/* ============ RENDER ESTAÇÕES ============ */
 async function renderEstacoes(){
   const el = $('#pdEstacoes');
   if(!el) return;
 
   let estacoes = (getConfig().estacoes || []);
 
-  //  LÊ DO SUPABASE
+  // Lê do Supabase
   if(supabaseClient){
     try{
       const { data, error } = await supabaseClient
@@ -197,9 +128,7 @@ async function renderEstacoes(){
           disponivel: e.disponivel
         }));
       }
-    }catch(err){
-      console.error('Erro estações:', err);
-    }
+    }catch(err){ console.error('❌ Estações:', err); }
   }
 
   el.innerHTML = estacoes.map(e => `
@@ -220,95 +149,41 @@ async function renderEstacoes(){
   });
 }
 
+/* ============ SELECIONAR ESTAÇÃO ============ */
 function selecionarEstacao(id){
   const cfg = getConfig();
-  const e = cfg.estacoes.find(x => x.id === id);
-  if(!e || !e.disponivel) return;
+  const e = (cfg.estacoes || []).find(x => x.id === id);
 
-  state.estacao = e;
+  // Se não encontrar no config, procura na lista renderizada
+  if(!e){
+    const estacoes = Store.get('galp_estacoes_temp', []);
+    const found = estacoes.find(x => x.id === id);
+    if(!found) return;
+    state.estacao = found;
+  } else {
+    state.estacao = e;
+  }
 
   $$('.pd-estacao').forEach(el => el.classList.toggle('selected', el.dataset.id === id));
 
-  // Mostra a secção de entrega depois de escolher estação
-  $('#pdSectionEntrega').hidden = false;
-  atualizarMostrarEntrega();
-
-  setTimeout(() => {
-    $('#pdSectionEntrega')?.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 200);
-}
-
-/* ============ PASSO 4: ENTREGA ============ */
-function atualizarMostrarEntrega(){
-  renderModos();
-  renderZonas();
-}
-
-function renderModos(){
-  $$('input[name="pd-modo"]').forEach(r => {
-    r.checked = r.value === state.modo;
-    r.onchange = () => {
-      state.modo = r.value;
-      $('#pdEntregaFields').hidden = state.modo !== 'entrega';
-      updateTotal();
-    };
-  });
-  $('#pdEntregaFields').hidden = state.modo !== 'entrega';
-}
-
-function renderZonas(){
-  const cfg = getConfig();
-  const sel = $('#pdZona');
-  if(!sel || !cfg.entrega?.zonas?.length) return;
-
-  sel.innerHTML = cfg.entrega.zonas.map((z,i) =>
-    `<option value="${i}">${z.nome} — ${z.valor} MT</option>`
-  ).join('');
-
-  state.zona = 0;
-  sel.onchange = () => { state.zona = Number(sel.value); updateSpeedPrices(); updateTotal(); };
-
-  $$('input[name="pd-velocidade"]').forEach(r => {
-    r.checked = r.value === state.velocidade;
-    r.onchange = () => { state.velocidade = r.value; updateTotal(); };
-  });
-
-  updateSpeedPrices();
-}
-
-function updateSpeedPrices(){
-  const cfg = getConfig();
-  const z = cfg.entrega?.zonas?.[state.zona];
-  if(!z) return;
-  const mult = cfg.entrega?.premium?.multiplicador || 2;
-  $('#pdPrecoNormal').textContent = `${z.valor} MT`;
-  $('#pdPrecoPremium').textContent = `${z.valor * mult} MT`;
-  $('#pdTempoNormal').textContent = z.tempo || 'até 1 hora';
-  $('#pdTempoPremium').textContent = cfg.entrega?.premium?.tempo || 'até 30 min';
-}
-
-function calcularEntrega(){
-  const cfg = getConfig();
-  if(state.modo === 'levantamento') return cfg.entrega?.levantamento || 30;
-  const z = cfg.entrega?.zonas?.[state.zona];
-  if(!z) return 0;
-  const mult = state.velocidade === 'premium' ? (cfg.entrega?.premium?.multiplicador || 2) : 1;
-  return z.valor * mult;
+  updateTotal();
+  validarBotao();
 }
 
 /* ============ QUANTIDADE ============ */
 function renderQtyInputs(){
   const cfg = getConfig();
-  const max = cfg.limite?.maxLitros || 20;
-  $('#pdQtyInput').value = state.quantidade;
-  $('#pdQtyInput').max = max;
+  if($('#pdQtyInput')) $('#pdQtyInput').value = state.quantidade;
+
   const qtds = cfg.quantidade?.rapida || [5,10,15,20];
-  $('#pdQuick').innerHTML = qtds.map(q =>
-    `<button data-q="${q}" class="${q===state.quantidade?'active':''}">${q}L</button>`
-  ).join('');
-  $('#pdQuick').querySelectorAll('button').forEach(b => {
-    b.onclick = () => setQty(Number(b.dataset.q));
-  });
+  if($('#pdQuick')){
+    $('#pdQuick').innerHTML = qtds.map(q =>
+      `<button data-q="${q}" class="${q===state.quantidade?'active':''}">${q}L</button>`
+    ).join('');
+    $('#pdQuick').querySelectorAll('button').forEach(b => {
+      b.onclick = () => setQty(Number(b.dataset.q));
+    });
+  }
 
   // Aviso de limite
   const aviso = $('#pdAvisoLimite');
@@ -328,14 +203,15 @@ function setQty(v){
   const max = cfg.limite?.maxLitros || 20;
 
   if(isNaN(v) || v < 1) v = 1;
-  if(v > max) v = max;   // ⚠️ bloqueia no máximo
+  if(v > max) v = max;
 
   state.quantidade = v;
-  $('#pdQtyInput').value = v;
-  $('#pdQuick').querySelectorAll('button').forEach(b => {
+  if($('#pdQtyInput')) $('#pdQtyInput').value = v;
+  $('#pdQuick')?.querySelectorAll('button').forEach(b => {
     b.classList.toggle('active', Number(b.dataset.q) === v);
   });
   updateTotal();
+  validarBotao();
 }
 
 document.addEventListener('click', e => {
@@ -354,333 +230,50 @@ function updateTotal(){
   const subtotal = preco * state.quantidade;
   const unidade = state.produto.unidade?.split('/')?.[1] || 'L';
 
-  $('#pdTotal').textContent = fmtMT(subtotal);
-  $('#pdHint').textContent = `${preco} MT × ${state.quantidade} ${unidade}`;
-
-  validarBotao();
+  if($('#pdTotal')) $('#pdTotal').textContent = fmtMT(subtotal);
+  if($('#pdHint'))  $('#pdHint').textContent  = `${preco} MT × ${state.quantidade} ${unidade}`;
 }
 
-/* ============ LOCALIZAÇÃO ============ */
-$('#pdUseLocation')?.addEventListener('click', () => {
-  if(!navigator.geolocation){
-    alert('Geolocalização não suportada.');
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude, longitude } = pos.coords;
-    $('#pdEndereco').value = `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
-    validarBotao();
-  }, () => alert('Não foi possível obter.'));
-});
-
-/* ============ VALIDAÇÃO ============ */
+/* ============ VALIDAR BOTÃO ============ */
 function validarBotao(){
   const btn = $('#pdBtnContinuar');
-  if(!btn || !state.produto) return;
+  if(!btn) return;
 
-  const nome = $('#pdNomeCliente')?.value.trim() || '';
-  const telefone = $('#pdTelefone')?.value.trim() || '';
-  const endereco = $('#pdEndereco')?.value.trim() || '';
+  const ok = state.produto && state.estacao;
 
-  let ok = true;
-  let motivo = 'Preencha os dados';
-
-  if(!state.estacao){ ok = false; motivo = 'Escolha a estação GALP'; }
-  else if(!nome){ ok = false; motivo = 'Preencha o nome'; }
-  else if(!telefone){ ok = false; motivo = 'Preencha o telefone'; }
-  else if(telefone.replace(/\D/g,'').length < 9){ ok = false; motivo = 'Telefone inválido'; }
-  else if(state.modo === 'entrega' && !endereco){ ok = false; motivo = 'Preencha o endereço'; }
-
-  if(!$('#pdSectionResumo').hidden){
-    btn.textContent = ok ? '📱 ENVIAR PELO WHATSAPP' : motivo;
-  } else {
-    btn.textContent = ok ? 'VER RESUMO →' : motivo;
-  }
   btn.disabled = !ok;
-}
 
-document.addEventListener('input', e => {
-  if(['pdNomeCliente','pdTelefone','pdEndereco','pdReferencia'].includes(e.target.id)){
-    validarBotao();
-  }
-});
-
-/* ============ RESUMO ============ */
-function mostrarResumo(){
-  state.endereco = $('#pdEndereco')?.value.trim() || '';
-  state.referencia = $('#pdReferencia')?.value.trim() || '';
-  state.nome = $('#pdNomeCliente')?.value.trim() || '';
-  state.telefone = $('#pdTelefone')?.value.trim() || '';
-
-  const p = state.produto;
-  const subtotal = p.preco * state.quantidade;
-  const entrega = calcularEntrega();
-  const total = arredondar(subtotal + entrega);
-  const unidade = p.unidade?.split('/')?.[1] || 'L';
-  const cfg = getConfig();
-
-  // ══════════ BLOCO 1: COMBUSTÍVEL ══════════
-  const combustivelHTML = `
-    <div class="pd-resumo-titulo">⛽ Combustível</div>
-    <div class="pd-resumo-item">
-      <span>${p.nome} (${state.quantidade} ${unidade})</span>
-      <b>${subtotal} MT</b>
-    </div>
-  `;
-
-  // ══════════ BLOCO 2: TAXA ══════════
-  let taxaLinha = '';
-  if(state.modo === 'levantamento'){
-    taxaLinha = `
-      <div class="pd-resumo-titulo">🏪 Levantamento</div>
-      <div class="pd-resumo-item">
-        <span>Retirar na ${state.estacao.nome}</span>
-        <b>${entrega} MT</b>
-      </div>
-    `;
+  if(ok){
+    btn.textContent = 'CONTINUAR →';
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  } else if(!state.produto){
+    btn.textContent = 'Escolha o combustível';
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
   } else {
-    const zonaNome = cfg.entrega?.zonas?.[state.zona]?.nome || '—';
-    const tipo = state.velocidade === 'premium' ? '⚡ Premium' : '🚚 Normal';
-    taxaLinha = `
-      <div class="pd-resumo-titulo">🛵 Entrega</div>
-      <div class="pd-resumo-item">
-        <span>Taxa de entrega (${zonaNome})</span>
-        <b>${entrega} MT</b>
-      </div>
-      <div class="pd-resumo-item">
-        <span>Tipo</span>
-        <b>${tipo}</b>
-      </div>
-    `;
+    btn.textContent = 'Escolha a estação GALP';
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
   }
-
-  $('#pdResumoBody').innerHTML = `
-    <!-- ESTAÇÃO -->
-    <div class="pd-resumo-titulo">🏪 Estação GALP</div>
-    <div class="pd-resumo-item">
-      <span>Posto</span>
-      <b>⛽ ${state.estacao.nome}</b>
-    </div>
-    <div class="pd-resumo-item">
-      <span>Endereço</span>
-      <b>${state.estacao.endereco || '—'}</b>
-    </div>
-
-    <!-- COMBUSTÍVEL -->
-    ${combustivelHTML}
-
-    <!-- TAXA / ENTREGA -->
-    ${taxaLinha}
-
-    <!-- ENDEREÇO (só se for entrega) -->
-    ${state.modo === 'entrega' ? `
-      <div class="pd-resumo-titulo">📍 Local de entrega</div>
-      <div class="pd-resumo-item">
-        <span>Endereço</span>
-        <b>${state.endereco}</b>
-      </div>
-      ${state.referencia ? `
-        <div class="pd-resumo-item">
-          <span>Referência</span>
-          <b>${state.referencia}</b>
-        </div>
-      ` : ''}
-    ` : ''}
-
-    <!-- CLIENTE -->
-    <div class="pd-resumo-titulo">👤 Cliente</div>
-    <div class="pd-resumo-item">
-      <span>Nome</span>
-      <b>${state.nome}</b>
-    </div>
-    <div class="pd-resumo-item">
-      <span>Telefone</span>
-      <b>${state.telefone}</b>
-    </div>
-
-    <!-- SEPARADOR + RESUMO DE CÁLCULO -->
-    <div style="margin-top:20px;padding-top:16px;border-top:1px dashed rgba(255,255,255,.15)"></div>
-
-    <!-- SUBTOTAL -->
-    <div class="pd-resumo-item">
-      <span>Subtotal (${state.quantidade} ${unidade} × ${p.preco} MT)</span>
-      <b>${subtotal} MT</b>
-    </div>
-
-    <!-- TAXA -->
-    <div class="pd-resumo-item">
-      <span>${state.modo === 'entrega' ? 'Taxa de entrega' : 'Taxa de levantamento'}</span>
-      <b>${entrega > 0 ? entrega + ' MT' : '—'}</b>
-    </div>
-
-    <!-- TOTAL -->
-    <div class="pd-resumo-item total">
-      <span>TOTAL</span>
-      <b>${total} MT</b>
-    </div>
-
-    <!-- BOTÕES -->
-    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
-      <button id="pdEditar" style="
-        flex:1;min-width:110px;padding:14px;border-radius:12px;
-        background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
-        color:#fff;font-weight:700;font-size:13px;cursor:pointer;
-      ">← EDITAR</button>
-    </div>
-  `;
-
-  $('#pdSectionResumo').hidden = false;
-  setTimeout(() => {
-    $('#pdSectionResumo')?.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
-
-  $('#pdEditar')?.addEventListener('click', () => {
-    $('#pdSectionResumo').hidden = true;
-    $('#pdSectionDados')?.scrollIntoView({behavior:'smooth', block:'start'});
-    validarBotao();
-  });
-
-  validarBotao();
 }
 
-/* ============ ENVIAR WHATSAPP ============ */
-/* ============ ENVIAR WHATSAPP (com modal de aviso) ============ */
-function enviarWhatsApp(){
-  // Abre a modal em vez de enviar logo
-  abrirModalAviso();
-}
-
-/* ============ ABRIR MODAL DE AVISO ============ */
-function abrirModalAviso(){
-  const e = state.estacao;
-  if(!e) return;
-
-  $('#pdModalEstacaoNome').textContent = e.nome;
-  $('#pdModalEstacaoEndereco').textContent = e.endereco || '';
-  $('#pdModal').classList.add('active');
-}
-
-/* ============ FECHAR MODAL ============ */
-function fecharModalAviso(){
-  $('#pdModal').classList.remove('active');
-}
-
-/* ============ ENVIAR DE VERDADE (após modal) ============ */
-async function enviarWhatsAppFinal(){
-  const cfg = getConfig();
-  const p = state.produto;
-  const subtotal = p.preco * state.quantidade;
-  const entrega = calcularEntrega();
-  const total = arredondar(subtotal + entrega);
-  const unidade = p.unidade?.split('/')?.[1] || 'L';
-
-  const zonaNome = state.modo === 'entrega'
-    ? (cfg.entrega?.zonas?.[state.zona]?.nome || '—')
-    : 'Levantamento';
-
-  const pedido = {
-    cliente: state.nome,
-    telefone: state.telefone,
-    produto: p.nome,
-    quantidade: state.quantidade,
-    unidade,
-    preco_unit: p.preco,
-    subtotal,
-    estacao_id: state.estacao.id,
-    estacao_nome: state.estacao.nome,
-    estacao_endereco: state.estacao.endereco,
-    modo: state.modo,
-    velocidade: state.velocidade,
-    zona: zonaNome,
-    tempo: state.velocidade === 'premium' ? (cfg.entrega?.premium?.tempo || 'até 30 min') : 'até 1 hora',
-    endereco: state.endereco,
-    referencia: state.referencia,
-    taxa: entrega,
-    total,
-    status: 'PENDENTE'
-  };
-
-  // Guarda no Supabase
-  if(supabaseClient){
-    supabaseClient.from('pedidos_galp').insert([pedido]).then(({ error }) => {
-      if(error) console.error('❌ Erro Supabase:', error);
-      else console.log('✅ Pedido gravado');
-    });
-  } else {
-    const pedidos = Store.get('galp_pedidos', []);
-    pedidos.unshift({ ...pedido, id: 'G' + Date.now(), data: new Date().toISOString() });
-    Store.set('galp_pedidos', pedidos);
-  }
-
-  // WhatsApp
-  const linhas = [
-    cfg.mensagemWhatsApp || 'Olá, GALP Quelimane!',
-    '',
-    `Cliente: ${state.nome}`,
-    `Telefone: ${state.telefone}`,
-    '',
-    `⛽ Estação GALP: ${state.estacao.nome}`,
-    `📍 Endereço: ${state.estacao.endereco}`,
-    '',
-    `Combustível: ${p.nome}`,
-    `Quantidade: ${state.quantidade} ${unidade}`,
-    `Preço: ${p.preco} MT/${unidade}`,
-    `Subtotal: ${subtotal} MT`,
-    '',
-    state.modo === 'entrega'
-      ? `Entrega: ${state.velocidade === 'premium' ? 'Premium' : 'Normal'} — ${zonaNome}`
-      : `Levantamento na ${state.estacao.nome}`,
-    state.modo === 'entrega' ? `Endereço: ${state.endereco}` : '',
-    state.modo === 'entrega' && state.referencia ? `Referência: ${state.referencia}` : '',
-    entrega > 0 ? `Taxa: ${entrega} MT` : '',
-    '',
-    `TOTAL: ${total} MT`,
-    '',
-    '⚠️ Tenho 1 hora para me deslocar à estação escolhida.',
-    '',
-    'Pedido realizado através do site da GALP Quelimane.'
-  ].filter(Boolean).join('\n');
-
-  window.open(`https://wa.me/${cfg.whatsapp}?text=${encodeURIComponent(linhas)}`, '_blank');
-}
-
-/* ============ BOTÃO PRINCIPAL ============ */
+/* ============ BOTÃO CONTINUAR ============ */
 $('#pdBtnContinuar')?.addEventListener('click', () => {
-  const emResumo = !$('#pdSectionResumo').hidden;
-  if(emResumo){
-    enviarWhatsApp();
-  } else {
-    mostrarResumo();
-  }
-});
-/* ============ EVENTOS DA MODAL ============ */
-document.addEventListener('DOMContentLoaded', () => {
-  $('#pdModalCancelar')?.addEventListener('click', fecharModalAviso);
-  $('#pdModalOk')?.addEventListener('click', () => {
-    fecharModalAviso();
-    enviarWhatsAppFinal();
+  if(!state.produto || !state.estacao) return;
+
+  // Guarda estado para o checkout
+  Store.set('galp_pedido_temp', {
+    produto: state.produto,
+    quantidade: state.quantidade,
+    estacao: state.estacao
   });
-  // Fecha ao clicar no fundo escuro
-  $('#pdModal')?.addEventListener('click', e => {
-    if(e.target.id === 'pdModal') fecharModalAviso();
-  });
-  // Fecha com ESC
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape') fecharModalAviso();
-  });
+
+  window.location.href = 'checkout.html';
 });
 
 /* ============ INIT ============ */
 document.addEventListener('DOMContentLoaded', async () => {
   await renderProdutos();
-
-  const params = new URLSearchParams(window.location.search);
-  const produtoId = params.get('produto');
-  if(produtoId){
-    const p = (await carregarProdutosDoSupabase()).find(x => x.id === produtoId);
-    if(p && p.disponivel) selecionarProduto(produtoId);
-    renderQtyInputs();
-    await renderEstacoes();
-    updateTotal();
-  }
+  validarBotao();
 });

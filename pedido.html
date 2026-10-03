@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-<title>Pedir Combustível — Bombas GALP</title>
+<title>Pedir Combustível — GALP Quelimane</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -23,18 +23,13 @@
               <stop offset="60%" stop-color="#FF7A00"/>
               <stop offset="100%" stop-color="#FFD200"/>
             </linearGradient>
-            <radialGradient id="flameGlowPed" cx="50%" cy="60%" r="50%">
-              <stop offset="0%" stop-color="#FFD200" stop-opacity=".35"/>
-              <stop offset="100%" stop-color="#FFD200" stop-opacity="0"/>
-            </radialGradient>
           </defs>
-          <circle cx="20" cy="24" r="20" fill="url(#flameGlowPed)"/>
           <path d="M20 3 C 24 12, 32 16, 32 24 A 12 12 0 0 1 8 24 C 8 17, 15 12, 20 3 Z" fill="url(#flameGradPed)"/>
-          <path d="M20 14 C 22 18, 26 21, 26 25 A 6 6 0 0 1 14 25 C 14 21, 18 18, 20 14 Z" fill="#FFF9E0" opacity=".7"/>
+          <path d="M20 14 C 22 18, 26 21, 26 25 A 6 6 0 0 1 14 25 C 14 21, 18 18, 20 14 Z" fill="#FFF9E0" opacity=".85"/>
         </svg>
       </div>
       <div class="pd-brand-text">
-        <b>BOMBAS <span>GALP</span></b>
+        <b>GALP <span>QUELIMANE</span></b>
         <small>PEDIR COMBUSTÍVEL</small>
       </div>
     </a>
@@ -43,12 +38,30 @@
   </div>
 </header>
 
-<!-- ============ CONTEÚDO ============ -->
+<!-- ============ BARRA DE PROGRESSO ============ -->
+<div class="pd-progress">
+  <div class="pd-progress-step active">
+    <span>1</span>
+    <small>Combustível</small>
+  </div>
+  <div class="pd-progress-line"></div>
+  <div class="pd-progress-step">
+    <span>2</span>
+    <small>Confirmar</small>
+  </div>
+  <div class="pd-progress-line"></div>
+  <div class="pd-progress-step">
+    <span>3</span>
+    <small>WhatsApp</small>
+  </div>
+</div>
+
+<!-- ============ MAIN ============ -->
 <main class="pd-main">
 
   <div class="pd-titulo">
     <h1>O que vai pedir?</h1>
-    <p>Escolha o combustível, a quantidade e o modo de entrega.</p>
+    <p>Escolha o combustível, a quantidade e a estação GALP.</p>
   </div>
 
   <!-- PASSO 1: ESCOLHER COMBUSTÍVEL -->
@@ -65,7 +78,7 @@
       <span class="pd-produto-icon" id="pdIcon">⛽</span>
       <div>
         <b id="pdNome">Gasolina</b>
-        <small id="pdPreco">118 MT/L</small>
+        <small id="pdPreco">98 MT/L</small>
       </div>
     </div>
 
@@ -79,140 +92,30 @@
 
     <div class="pd-total-box">
       <span>SUBTOTAL</span>
-      <b id="pdTotal">118 MT</b>
+      <b id="pdTotal">98 MT</b>
     </div>
-    <small class="pd-hint" id="pdHint">118 MT × 1 L</small>
+    <small class="pd-hint" id="pdHint">98 MT × 1 L</small>
   </section>
 
-<!-- PASSO 3: ESCOLHER ESTAÇÃO GALP -->
-<section class="pd-section" id="pdSectionEstacao" hidden>
-  <h2><span class="pd-step">3</span> Escolha a estação GALP</h2>
-  <p style="font-size:13px;color:#98A2B3;margin-bottom:14px">
-    Selecione em qual posto quer levantar o combustível.
-  </p>
-  <div class="pd-estacoes" id="pdEstacoes"></div>
-</section>
-
-  <!-- PASSO 4: ENTREGA -->
-  <section class="pd-section" id="pdSectionEntrega" hidden>
-    <h2><span class="pd-step">4</span> Como quer receber?</h2>
-
-    <div class="pd-modos">
-      <label class="pd-modo">
-        <input type="radio" name="pd-modo" value="entrega" checked/>
-        <div class="pd-modo-inner">
-          <span class="pd-modo-icon">🚚</span>
-          <b>ENTREGA</b>
-          <small>Em casa</small>
-        </div>
-      </label>
-      <label class="pd-modo">
-        <input type="radio" name="pd-modo" value="levantamento"/>
-        <div class="pd-modo-inner">
-          <span class="pd-modo-icon">🏪</span>
-          <b>LEVANTAMENTO</b>
-          <small>Nas Bombas</small>
-        </div>
-      </label>
-    </div>
-
-    <div id="pdEntregaFields">
-      <div class="pd-field">
-        <label>Zona de entrega</label>
-        <select id="pdZona"></select>
-      </div>
-
-      <div class="pd-field">
-        <label>Tipo de entrega</label>
-        <div class="pd-speed">
-          <label class="pd-speed-opt">
-            <input type="radio" name="pd-velocidade" value="normal" checked/>
-            <div class="pd-speed-inner">
-              <span>🕐</span>
-              <div><b>NORMAL</b><small id="pdTempoNormal">até 1 hora</small></div>
-              <span class="pd-speed-price" id="pdPrecoNormal">50 MT</span>
-            </div>
-          </label>
-          <label class="pd-speed-opt">
-            <input type="radio" name="pd-velocidade" value="premium"/>
-            <div class="pd-speed-inner premium">
-              <span>⚡</span>
-              <div><b>PREMIUM</b><small id="pdTempoPremium">até 30 min</small></div>
-              <span class="pd-speed-price" id="pdPrecoPremium">100 MT</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="pd-field">
-        <label>Endereço / Localização</label>
-        <input type="text" id="pdEndereco" placeholder="Ex.: Bairro, rua, número"/>
-      </div>
-      <div class="pd-field">
-        <label>Ponto de Referência</label>
-        <input type="text" id="pdReferencia" placeholder="Ex.: Próximo ao mercado"/>
-      </div>
-      <button type="button" class="pd-btn-outline" id="pdUseLocation">
-        📍 Usar a minha localização
-      </button>
-    </div>
+  <!-- PASSO 3: ESCOLHER ESTAÇÃO GALP -->
+  <section class="pd-section" id="pdSectionEstacao" hidden>
+    <h2><span class="pd-step">3</span> Escolha a estação GALP</h2>
+    <p style="font-size:13px;color:#98A2B3;margin-bottom:14px">
+      Selecione em qual posto quer retirar o combustível.
+    </p>
+    <div class="pd-estacoes" id="pdEstacoes"></div>
   </section>
-
-  <!-- PASSO 5: DADOS -->
-  <section class="pd-section" id="pdSectionDados" hidden>
-    <h2><span class="pd-step">5</span> Os seus dados</h2>
-
-    <div class="pd-field">
-      <label>Nome completo</label>
-      <input type="text" id="pdNomeCliente" placeholder="O seu nome"/>
-    </div>
-    <div class="pd-field">
-      <label>Telefone</label>
-      <input type="tel" id="pdTelefone" placeholder="Ex.: 84XXXXXXX"/>
-    </div>
-  </section>
-
-  <!-- RESUMO -->
-  <section class="pd-section pd-resumo" id="pdSectionResumo" hidden>
-    <h2>Resumo do pedido</h2>
-    <div id="pdResumoBody"></div>
-  </section>
-
-  <!-- BOTÃO CONTINUAR (só aparece quando tudo preenchido) -->
-  <div class="pd-continuar-wrap">
-    <button class="pd-btn-continuar" id="pdBtnContinuar" disabled>
-      Preencha os dados
-    </button>
-  </div>
 
 </main>
-<!-- ============ MODAL DE AVISO ============ -->
-<div class="pd-modal" id="pdModal">
-  <div class="pd-modal-box">
-    <div class="pd-modal-icon">⏰</div>
-    <h2 class="pd-modal-title">ATENÇÃO — TEMPO LIMITE</h2>
-    <p class="pd-modal-text">
-      Após clicares em <b>ENTENDI</b>, tens até <b>1 HORA</b> para te deslocares à estação GALP escolhida.
-    </p>
 
-    <div class="pd-modal-estacao">
-      <div class="pd-modal-estacao-icon">⛽</div>
-      <div>
-        <b id="pdModalEstacaoNome">GALP Centro</b>
-        <small id="pdModalEstacaoEndereco">Av. Marginal, Centro</small>
-      </div>
-    </div>
-
-    <p class="pd-modal-text pd-modal-destaque">
-      Apresenta este pedido ao frentista quando chegares.
-    </p>
-
-    <div class="pd-modal-botoes">
-      <button class="pd-modal-btn pd-modal-cancelar" id="pdModalCancelar">Cancelar</button>
-      <button class="pd-modal-btn pd-modal-ok" id="pdModalOk">ENTENDI ✓</button>
-    </div>
-  </div>
+<!-- ============ BOTÃO CONTINUAR (fixo em baixo) ============ -->
+<div class="pd-continuar-wrap">
+  <button class="pd-btn-continuar" id="pdBtnContinuar" disabled>
+    Escolha o combustível
+  </button>
 </div>
+
+<!-- ============ SCRIPTS ============ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/pedido.js"></script>

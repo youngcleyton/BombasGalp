@@ -44,21 +44,12 @@ const CONFIG = {
     diesel: 120
   },
 
-  entrega: {
-    ativa: true,
-    gratisAcimaDe: null,
-    levantamento: 30,
-    zonas: [
-      { nome: "Centro de Quelimane", valor: 80,  tempo: "até 1 hora" },
-      { nome: "Arredores",           valor: 60,  tempo: "até 1 hora" },
-      { nome: "Bairros próximos",    valor: 80,  tempo: "até 1 hora" },
-      { nome: "Periferia",           valor: 120, tempo: "até 1 hora" }
-    ],
-    premium: {
-      ativo: true,
-      tempo: "até 30 minutos",
-      multiplicador: 2
-    }
+    // ============ RETIRADA (única modalidade) ============
+  // Cliente escolhe a estação GALP, mas não há entrega em casa
+  retirada: {
+    taxa: 30,
+    prazo: 60,
+    mensagem: "Tens até 1 hora para retirar o combustível."
   },
 
   quantidade: {
@@ -75,7 +66,7 @@ const CONFIG = {
 
   mensagemWhatsApp: "Olá, GALP Quelimane! Gostaria de fazer um pedido de combustível.",
 
-  // ⬇️⬇️⬇️ ESTA É A PARTE QUE FALTAVA ⬇️⬇️⬇️
+  // Banco de dados ⬇️⬇️⬇️
   supabase: {
     url: "https://hqlxwegzkllpvqwwzhhw.supabase.co",
     key: "sb_publishable_DaVPlT1yggN8BHbBHxvx0g_-pZ4zb-c"

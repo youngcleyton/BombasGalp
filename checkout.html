@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>Finalizar — GALP Quelimane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pedido.css"/>
+</head>
+<body>
+
+<header class="pd-header">
+  <div class="pd-inner">
+    <a href="pedido.html" class="pd-brand">
+      <div class="pd-logo">
+        <svg viewBox="0 0 40 40">
+          <defs>
+            <linearGradient id="flameGradCo" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#E30613"/>
+              <stop offset="60%" stop-color="#FF7A00"/>
+              <stop offset="100%" stop-color="#FFD200"/>
+            </linearGradient>
+          </defs>
+          <path d="M20 3 C 24 12, 32 16, 32 24 A 12 12 0 0 1 8 24 C 8 17, 15 12, 20 3 Z" fill="url(#flameGradCo)"/>
+          <path d="M20 14 C 22 18, 26 21, 26 25 A 6 6 0 0 1 14 25 C 14 21, 18 18, 20 14 Z" fill="#FFF9E0" opacity=".85"/>
+        </svg>
+      </div>
+      <div class="pd-brand-text">
+        <b>GALP <span>QUELIMANE</span></b>
+        <small>FINALIZAR PEDIDO</small>
+      </div>
+    </a>
+
+    <a href="pedido.html" class="pd-voltar">← Voltar</a>
+  </div>
+</header>
+
+<div class="pd-progress">
+  <div class="pd-progress-step completed">
+    <span>1</span>
+    <small>Combustível</small>
+  </div>
+  <div class="pd-progress-line"></div>
+  <div class="pd-progress-step active">
+    <span>2</span>
+    <small>Confirmar</small>
+  </div>
+  <div class="pd-progress-line"></div>
+  <div class="pd-progress-step">
+    <span>3</span>
+    <small>WhatsApp</small>
+  </div>
+</div>
+
+<main class="pd-main">
+
+  <div class="pd-titulo">
+    <h1>Confirmar pedido</h1>
+    <p>Retirada no posto GALP escolhido</p>
+  </div>
+
+  <section class="pd-section">
+    <h2>⛽ Posto de Retirada</h2>
+    <div class="pd-posto-info">
+      <div class="pd-posto-icon">⛽</div>
+      <div>
+        <b id="pdPostoNome">GALP Centro</b>
+        <small id="pdPostoEndereco">Av. Marginal, Centro</small>
+      </div>
+    </div>
+    <div class="pd-prazo-aviso">
+      ⏰ Tens até <b>1 hora</b> para retirar o combustível após a confirmação.
+    </div>
+  </section>
+
+  <section class="pd-section">
+    <h2>👤 Os seus dados</h2>
+    <div class="pd-field">
+      <label>Nome completo</label>
+      <input type="text" id="pdNomeCliente" placeholder="O seu nome" autocomplete="name"/>
+    </div>
+    <div class="pd-field">
+      <label>Telefone</label>
+      <input type="tel" id="pdTelefone" placeholder="Ex.: 84XXXXXXX" autocomplete="tel"/>
+    </div>
+    <div class="pd-field">
+      <label>Matrícula do veículo (opcional)</label>
+      <input type="text" id="pdMatricula" placeholder="Ex.: ABC-123-MC"/>
+    </div>
+    <div class="pd-field">
+      <label>Observações (opcional)</label>
+      <textarea id="pdObs" rows="2" placeholder="Ex.: Vou chegar em 20 minutos"></textarea>
+    </div>
+  </section>
+
+  <button class="pd-btn-final" id="pdVerResumo" disabled>VER RESUMO →</button>
+
+</main>
+
+<div class="pd-modal" id="pdModalResumo">
+  <div class="pd-modal-box">
+    <div class="pd-modal-head">
+      <h2>📋 Resumo do pedido</h2>
+      <button class="pd-modal-close" id="pdModalResumoClose">✕</button>
+    </div>
+    <div class="pd-modal-body" id="pdResumoBody"></div>
+    <div class="pd-modal-foot">
+      <button class="pd-modal-btn pd-modal-cancelar" id="pdResumoEditar">← EDITAR</button>
+      <button class="pd-modal-btn pd-modal-ok" id="pdResumoEnviar">📱 ENVIAR WHATSAPP</button>
+    </div>
+  </div>
+</div>
+
+<div class="pd-modal" id="pdModalAviso">
+  <div class="pd-modal-box pd-modal-box-aviso">
+    <div class="pd-modal-icon">⏰</div>
+    <h2 class="pd-modal-title">ATENÇÃO — TEMPO LIMITE</h2>
+    <p class="pd-modal-text">
+      Após clicares em <b>ENTENDI</b>, tens até <b>1 HORA</b> para retirar o combustível no posto escolhido.
+    </p>
+
+    <div class="pd-modal-estacao">
+      <div class="pd-modal-estacao-icon">⛽</div>
+      <div>
+        <b id="pdModalEstacaoNome">GALP Centro</b>
+        <small id="pdModalEstacaoEndereco">Av. Marginal, Centro</small>
+      </div>
+    </div>
+
+    <p class="pd-modal-text pd-modal-destaque">
+      Apresenta este pedido ao frentista com o código <b id="pdModalCodigo">—</b>.
+    </p>
+
+    <div class="pd-modal-botoes">
+      <button class="pd-modal-btn pd-modal-cancelar" id="pdModalAvisoCancelar">Cancelar</button>
+      <button class="pd-modal-btn pd-modal-ok" id="pdModalAvisoOk">ENTENDI ✓</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/checkout.js"></script>
+</body>
+</html>
