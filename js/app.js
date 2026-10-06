@@ -18,25 +18,24 @@ const $$ = s => document.querySelectorAll(s);
 const hamburger = $('#hamburger');
 const navLinks = $('#navLinks');
 
-function fecharMenu(){
-  navLinks?.classList.remove('open');
-  hamburger?.classList.remove('active');
-  document.querySelector('.nav-overlay')?.classList.remove('active');
-  document.body.style.overflow = '';
-}
-function abrirMenu(){
-  navLinks?.classList.add('open');
-  hamburger?.classList.add('active');
-  document.querySelector('.nav-overlay')?.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
 hamburger?.addEventListener('click', () => {
   if(navLinks.classList.contains('open')) fecharMenu();
   else abrirMenu();
 });
-navLinks?.querySelectorAll('a').forEach(a => a.addEventListener('click', fecharMenu));
-document.querySelector('.nav-overlay')?.addEventListener('click', fecharMenu);
 
+function abrirMenu(){
+  navLinks?.classList.add('open');
+  hamburger?.classList.add('active');   // ← esta linha é essencial
+  document.querySelector('.nav-overlay')?.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharMenu(){
+  navLinks?.classList.remove('open');
+  hamburger?.classList.remove('active'); // ← esta também
+  document.querySelector('.nav-overlay')?.classList.remove('active');
+  document.body.style.overflow = '';
+}
 /* ============ CARDS COMBUSTÍVEIS ============ */
 function renderFuelCards(){
   const grid = $('#fuelGrid');
