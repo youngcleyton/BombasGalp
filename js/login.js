@@ -12,7 +12,7 @@ const SESSION_KEY = 'galp_admin_session';
 
 /* Se já tem sessão ativa → vai direto para o painel */
 if(localStorage.getItem(SESSION_KEY) === 'ok'){
-  window.location.href = 'exitoadmin.html';
+  window.location.href = 'galpadmin26.html';
 }
 
 /* Garantir config base */
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(user === adminUser && pass === adminPass){
       localStorage.setItem(SESSION_KEY, 'ok');
       console.log('✅ Login OK. Redirecionando...');
-      window.location.href = 'exitoadmin.html';
+      window.location.href = 'galpadmin26.html';
     } else {
       $('#loginError').textContent = '❌ Credenciais inválidas. Tenta novamente.';
       $('#loginPass').value = '';

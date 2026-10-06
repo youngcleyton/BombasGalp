@@ -148,7 +148,7 @@ async function carregarEstacoes(){
   }
 }
 
-async function carregarPedidosDoServidor(){
+async function carregarPedidos(){
   if(!supabaseClient) return;
   try{
     const { data, error } = await supabaseClient
@@ -169,15 +169,11 @@ async function carregarPedidosDoServidor(){
       unidade: p.unidade || 'L',
       precoUnit: p.preco_unit,
       subtotal: p.subtotal,
+      codigo: p.codigo_retirada || '—',
       estacaoNome: p.estacao_nome,
-      modo: p.modo,
-      velocidade: p.velocidade,
-      zona: p.zona,
-      tempo: p.tempo,
-      endereco: p.endereco,
-      referencia: p.referencia,
-      observacoes: p.observacoes,
-      entrega: p.taxa,
+      estacaoEndereco: p.estacao_endereco,
+      modo: 'retirada',                    // sempre retirada agora
+      taxa: p.taxa,
       total: p.total,
       status: p.status
     }));
@@ -185,7 +181,7 @@ async function carregarPedidosDoServidor(){
     Store.set('galp_pedidos', pedidos);
     return pedidos;
   }catch(err){
-    console.error('❌ Erro pedidos:', err);
+    console.error('❌', err);
     return Store.get('galp_pedidos', []);
   }
 }
@@ -332,11 +328,11 @@ function renderSwitchesEstacoes(){
     });
   });
 }
-/* ============ PEDIDOS PENDENTES ============ */
+
 function renderPendentes(){
   const pedidos = Store.get('galp_pedidos', []);
   const pendentes = pedidos.filter(p =>
-    p.status === 'PENDENTE' || p.status === 'PREPARACAO' || p.status === 'CAMINHO'
+    p.status === 'PENDENTE' || p.status === 'PREPARACAO'
   );
 
   $('#pendentesCount').textContent = pendentes.length;
@@ -352,32 +348,23 @@ function renderPendentes(){
   container.innerHTML = pendentes.map(p => {
     const label = {
       PENDENTE:   { txt:'Pendente',       color:'#FFD200' },
-      PREPARACAO: { txt:'Em preparação',  color:'#4D9FFF' },
-      CAMINHO:    { txt:'A caminho',      color:'#FFA84D' }
+      PREPARACAO: { txt:'Pronto a retirar', color:'#4D9FFF' }
     }[p.status] || { txt:'Pendente', color:'#FFD200' };
 
     return `
       <div class="receipt pending">
         <div class="receipt-head">
-          <span class="receipt-id">${p.id.slice(-6)}</span>
+          <span class="receipt-id">#${p.codigo || p.id.slice(-6)}</span>
           <span class="receipt-date">${new Date(p.data).toLocaleString('pt-PT')}</span>
         </div>
         <div class="receipt-body">
           <div class="receipt-row"><span>Cliente</span><b>${p.cliente}</b></div>
           <div class="receipt-row"><span>Telefone</span><b>${p.telefone}</b></div>
           <div class="receipt-row"><span>Estação</span><b>⛽ ${p.estacaoNome || '—'}</b></div>
+          <div class="receipt-row"><span>Endereço</span><b>${p.estacaoEndereco || '—'}</b></div>
           <div class="receipt-row"><span>Combustível</span><b>${p.produto}</b></div>
-          <div class="receipt-row"><span>Qtd</span><b>${p.quantidade} ${p.unidade || 'L'}</b></div>
-          <div class="receipt-row"><span>Modo</span><b>${
-            p.modo === 'entrega'
-              ? `${p.velocidade === 'premium' ? '⚡ Premium' : '🚚 Normal'} — ${p.zona || '—'}`
-              : '🏪 Levantamento'
-          }</b></div>
-          ${p.modo === 'entrega' ? `
-            <div class="receipt-row"><span>Local</span><b>${p.endereco || '—'}</b></div>
-            ${p.referencia ? `<div class="receipt-row"><span>Ref.</span><b>${p.referencia}</b></div>` : ''}
-          ` : ''}
-          <div class="receipt-row"><span>Taxa</span><b>${p.entrega ? p.entrega + ' MT' : '—'}</b></div>
+          <div class="receipt-row"><span>Quantidade</span><b>${p.quantidade} ${p.unidade}</b></div>
+          <div class="receipt-row"><span>Taxa de serviço</span><b>${p.taxa} MT</b></div>
           <div class="receipt-row total"><span>TOTAL</span><b>${p.total} MT</b></div>
         </div>
         <div class="receipt-foot">
@@ -396,14 +383,14 @@ function renderPendentes(){
 
   $$('[data-entregue]').forEach(b => {
     b.addEventListener('click', () => {
-      if(!confirm('Confirmar que este pedido foi ENTREGUE?')) return;
+      if(!confirm('Confirmar que este pedido foi retirado?')) return;
       atualizarStatus(b.dataset.entregue, 'ENTREGUE');
     });
   });
 
   $$('[data-cancelar]').forEach(b => {
     b.addEventListener('click', () => {
-      if(!confirm('Cancelar este pedido? Vai desaparecer.')) return;
+      if(!confirm('Cancelar este pedido?')) return;
       atualizarStatus(b.dataset.cancelar, 'CANCELADO');
     });
   });
@@ -413,7 +400,6 @@ function renderPendentes(){
   });
 }
 
-/* ============ TABELA EXTRATO ============ */
 function renderTabela(){
   const pedidos = Store.get('galp_pedidos', []);
   let filtrados = pedidos;
@@ -425,7 +411,7 @@ function renderTabela(){
   if(!body) return;
 
   if(!filtrados.length){
-    body.innerHTML = `<tr><td colspan="14" class="empty">Sem registos.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="12" class="empty">Sem registos.</td></tr>`;
     $('#totalGeral').textContent = '0 MT';
     return;
   }
@@ -434,39 +420,33 @@ function renderTabela(){
     const isEntregue  = p.status === 'ENTREGUE';
     const isCancelado = p.status === 'CANCELADO';
     const isPendente  = !isEntregue && !isCancelado;
+
     const badgeClass = isEntregue ? 'badge-entregue'
-                     : isCancelado ? 'badge-cancelado' : 'badge-pendente';
-    const modoTxt = p.modo === 'entrega'
-      ? `${p.velocidade === 'premium' ? '⚡ Premium' : '🚚 Normal'}`
-      : '🏪 Levantam.';
+                     : isCancelado ? 'badge-cancelado'
+                     : 'badge-pendente';
+
     const acoes = isPendente
-      ? `
-        <div class="acoes-linha">
+      ? `<div class="acoes-linha">
           <button class="btn-mini btn-entregue-mini" data-entregue="${p.id}">✅</button>
           <button class="btn-mini btn-cancelar-mini" data-cancelar="${p.id}">❌</button>
           <button class="btn-mini btn-imprimir-mini" data-imprimir="${p.id}">🖨️</button>
-        </div>
-      `
-      : `
-        <div class="acoes-linha">
+        </div>`
+      : `<div class="acoes-linha">
           <span class="txt-final">${isEntregue ? '✅ Finalizado' : '❌ Cancelado'}</span>
           <button class="btn-mini btn-imprimir-mini" data-imprimir="${p.id}">🖨️</button>
-        </div>
-      `;
+        </div>`;
 
     return `
       <tr>
         <td>${i + 1}</td>
-        <td><b>${p.id.slice(-6)}</b></td>
+        <td><b>#${p.codigo || p.id.slice(-6)}</b></td>
         <td>${new Date(p.data).toLocaleDateString('pt-PT')}</td>
         <td>${p.cliente}</td>
         <td>${p.telefone || '—'}</td>
         <td>⛽ ${p.estacaoNome || '—'}</td>
         <td>${p.produto}</td>
-        <td>${p.quantidade} ${p.unidade || 'L'}</td>
-        <td>${modoTxt}</td>
-        <td>${p.zona || '—'}</td>
-        <td>${p.entrega ? p.entrega + ' MT' : '—'}</td>
+        <td>${p.quantidade} ${p.unidade}</td>
+        <td>${p.taxa ? p.taxa + ' MT' : '—'}</td>
         <td><b>${p.total} MT</b></td>
         <td><span class="badge ${badgeClass}">${p.status}</span></td>
         <td>${acoes}</td>
@@ -482,7 +462,7 @@ function renderTabela(){
     atualizarStatus(b.dataset.entregue, 'ENTREGUE');
   }));
   body.querySelectorAll('[data-cancelar]').forEach(b => b.addEventListener('click', () => {
-    if(!confirm('Cancelar e apagar?')) return;
+    if(!confirm('Cancelar?')) return;
     atualizarStatus(b.dataset.cancelar, 'CANCELADO');
   }));
   body.querySelectorAll('[data-imprimir]').forEach(b => b.addEventListener('click', () => imprimirRecibo(b.dataset.imprimir)));
