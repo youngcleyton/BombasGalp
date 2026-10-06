@@ -18,10 +18,6 @@ const $$ = s => document.querySelectorAll(s);
 const hamburger = $('#hamburger');
 const navLinks = $('#navLinks');
 
-hamburger?.addEventListener('click', () => {
-  if(navLinks.classList.contains('open')) fecharMenu();
-  else abrirMenu();
-});
 
 function abrirMenu(){
   navLinks?.classList.add('open');
@@ -36,6 +32,11 @@ function fecharMenu(){
   document.querySelector('.nav-overlay')?.classList.remove('active');
   document.body.style.overflow = '';
 }
+
+hamburger?.addEventListener('click', () => {
+  if(navLinks.classList.contains('open')) fecharMenu();
+  else abrirMenu();
+});
 /* ============ CARDS COMBUSTÍVEIS ============ */
 function renderFuelCards(){
   const grid = $('#fuelGrid');

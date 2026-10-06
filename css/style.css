@@ -101,68 +101,60 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .btn-admin:hover{transform:translateY(-2px)}
 
 /* ============================================================
-   HAMBURGER (menu mobile)
+   HAMBURGER — VERSÃO REFORÇADA
    ============================================================ */
 
 .hamburger{
   display:none;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  gap:5px;
-  width:44px;
-  height:44px;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:5px !important;
+  width:44px !important;
+  height:44px !important;
   border-radius:10px;
-  background:rgba(255,102,0,.12);
-  border:1px solid rgba(255,102,0,.25);
-  padding:0;
+  background:rgba(255,102,0,.15) !important;
+  border:1px solid rgba(255,102,0,.3) !important;
+  padding:0 !important;
   cursor:pointer;
   transition:.2s;
   flex-shrink:0;
   z-index:1001;
   position:relative;
-}
-
-.hamburger:hover{
-  background:rgba(255,102,0,.2);
+  overflow:visible !important;
 }
 
 .hamburger span{
-  display:block;
-  width:22px;
-  height:2px;
-  background:#fff;
-  border-radius:2px;
-  transition:.3s ease;
+  display:block !important;
+  width:22px !important;
+  height:2px !important;
+  background:#FFFFFF !important;
+  border-radius:2px !important;
+  transition:.3s ease !important;
+  opacity:1 !important;
+  visibility:visible !important;
   transform-origin:center;
+  flex-shrink:0;
 }
 
-/* ============ ESTADO ATIVO (vira X) ============ */
+/* Estado ativo — vira X */
 .hamburger.active span:nth-child(1){
-  transform:translateY(7px) rotate(45deg);
+  transform:translateY(7px) rotate(45deg) !important;
 }
-
 .hamburger.active span:nth-child(2){
-  opacity:0;
-  transform:scale(0);
+  opacity:0 !important;
 }
-
 .hamburger.active span:nth-child(3){
-  transform:translateY(-7px) rotate(-45deg);
+  transform:translateY(-7px) rotate(-45deg) !important;
 }
 
-.hamburger.active span{
-  background:#FFD200;  /* ← dourado quando aberto */
-}
-
-.hamburger.active{
-  background:rgba(227,6,19,.25);   /* ← fundo vermelho */
-  border-color:rgba(227,6,19,.5);
-}
-/* ============ MOSTRAR EM MOBILE ============ */
+/* Mostrar só em mobile */
 @media (max-width:900px){
-  .hamburger{display:flex}
+  .hamburger{
+    display:flex !important;
+  }
 }
+
 /* ============ BOTÕES ============ */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
