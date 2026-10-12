@@ -209,6 +209,8 @@ async function enviarWhatsAppFinal(){
     'Pedido através do site GALP Quelimane.'
   ].filter(Boolean).join('\n');
 
-  window.open(`https://wa.me/${cfg.whatsapp}?text=${encodeURIComponent(linhas)}`, '_blank');
-  localStorage.removeItem('galp_pedido_temp');
+  // Escolhe o WhatsApp correto: da estação, ou o geral como fallback
+const whatsappDestino = state.estacao.whatsapp || cfg.whatsapp;
+
+window.open(`https://wa.me/${whatsappDestino}?text=${encodeURIComponent(linhas)}`, '_blank');
 }

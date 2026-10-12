@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ⭐ Carrega do Supabase PRIMEIRO
   await carregarProdutos();
   await carregarEstacoes();
-  await carregarPedidosDoServidor();
+  await carregarPedidos();
 
   renderTudo();
 

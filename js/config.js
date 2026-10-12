@@ -33,10 +33,30 @@ const CONFIG = {
     mensagem: "Tens até 1 hora para te deslocares à estação escolhida."
   },
 
+    // ============ ESTAÇÕES GALP ============
+  // Cada estação tem o seu próprio WhatsApp
   estacoes: [
-    { id: "galp_centro",    nome: "GALP Centro",    endereco: "Av. Marginal, Centro",   disponivel: true },
-    { id: "galp_micaia",    nome: "GALP Micaia",    endereco: "Bairro Micaia",          disponivel: true },
-    { id: "galp_sangarive", nome: "GALP Sangarive", endereco: "Estrada de Sangarive",   disponivel: true }
+    { 
+      id: "galp_centro", 
+      nome: "GALP Centro", 
+      endereco: "Av. Marginal, Centro", 
+      disponivel: true,
+      whatsapp: "258871632577"    // ← WhatsApp do Centro
+    },
+    { 
+      id: "galp_micaia", 
+      nome: "GALP Micaia", 
+      endereco: "Bairro Micaia", 
+      disponivel: true,
+      whatsapp: "258856836471"    // ← WhatsApp da Micaia
+    },
+    { 
+      id: "galp_sangarive", 
+      nome: "GALP Sangarive", 
+      endereco: "Estrada de Sangarive", 
+      disponivel: true,
+      whatsapp: "258871632577"    // ← WhatsApp da Sangarive
+    }
   ],
 
   precos: {
