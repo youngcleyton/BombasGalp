@@ -1,5 +1,5 @@
 /* ============================================================
-   GALP QUELIMANE — ADMIN (com Supabase sync)
+   GALP QUELIMANE — ADMIN (versão final)
    ============================================================ */
 
 const SESSION_KEY = 'galp_admin_session';
@@ -18,82 +18,26 @@ const Store = {
 /* ============ SUPABASE ============ */
 let supabaseClient = null;
 try{
-  const supaCfg = (typeof CONFIG !== 'undefined' && CONFIG.supabase) ? CONFIG.supabase : null;
-
   if(!window.supabase){
-    console.warn('⚠️ CDN do Supabase não carregou');
-  } else if(!supaCfg || !supaCfg.url || !supaCfg.key){
-    console.warn('⚠️ CONFIG.supabase está vazio ou em falta');
-    console.log('CONFIG.supabase =', supaCfg);
+    console.warn('⚠️ CDN Supabase não carregou');
+  } else if(!CONFIG.supabase || !CONFIG.supabase.url || !CONFIG.supabase.key){
+    console.warn('⚠️ CONFIG.supabase vazio');
   } else {
-    supabaseClient = window.supabase.createClient(supaCfg.url, supaCfg.key);
+    supabaseClient = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.key);
     console.log('✅ Admin ligado ao Supabase');
   }
 }catch(err){ console.error('❌ Erro Supabase:', err); }
 
 let filtroAtual = 'todos';
 
-/* ============ CARREGAR PRODUTOS DO SUPABASE ============ */
-async function carregarProdutos(){
-  if(!supabaseClient) return Store.get('galp_produtos', PRODUTOS_PADRAO);
-  try{
-    const { data, error } = await supabaseClient
-      .from('galp_produtos_config')
-      .select('*')
-      .order('id');
-
-    if(error) throw error;
-
-    const produtos = (data || []).map(p => ({
-      id: p.id,
-      nome: p.nome,
-      preco: Number(p.preco),
-      unidade: p.unidade,
-      desc: p.descricao,
-      icon: p.icon,
-      disponivel: p.disponivel
-    }));
-
-    Store.set('galp_produtos', produtos);
-    return produtos;
-  }catch(err){
-    console.error('❌ Erro produtos:', err);
-    return Store.get('galp_produtos', PRODUTOS_PADRAO);
-  }
-}
-
-/* ============ CARREGAR ESTAÇÕES DO SUPABASE ============ */
-async function carregarEstacoes(){
-  if(!supabaseClient) return (Store.get('galp_config', CONFIG).estacoes || []);
-  try{
-    const { data, error } = await supabaseClient
-      .from('galp_estacoes_config')
-      .select('*')
-      .order('id');
-
-    if(error) throw error;
-
-    const estacoes = (data || []).map(e => ({
-      id: e.id,
-      nome: e.nome,
-      endereco: e.endereco,
-      disponivel: e.disponivel
-    }));
-
-    const cfg = Store.get('galp_config', CONFIG);
-    cfg.estacoes = estacoes;
-    Store.set('galp_config', cfg);
-    return estacoes;
-  }catch(err){
-    console.error('❌ Erro estações:', err);
-    return (Store.get('galp_config', CONFIG).estacoes || []);
-  }
-}
 /* ============================================================
-   CARREGAR PRODUTOS E ESTAÇÕES DO SUPABASE
+   CARREGAR PRODUTOS
    ============================================================ */
 async function carregarProdutos(){
-  if(!supabaseClient) return Store.get('galp_produtos', PRODUTOS_PADRAO);
+  if(!supabaseClient){
+    console.warn('⚠️ Sem Supabase, usando cache local');
+    return Store.get('galp_produtos', PRODUTOS_PADRAO);
+  }
   try{
     const { data, error } = await supabaseClient
       .from('galp_produtos_config')
@@ -113,6 +57,7 @@ async function carregarProdutos(){
     }));
 
     Store.set('galp_produtos', produtos);
+    console.log('✅ Produtos carregados:', produtos.length);
     return produtos;
   }catch(err){
     console.error('❌ Erro produtos:', err);
@@ -120,8 +65,13 @@ async function carregarProdutos(){
   }
 }
 
+/* ============================================================
+   CARREGAR ESTAÇÕES
+   ============================================================ */
 async function carregarEstacoes(){
-  if(!supabaseClient) return (Store.get('galp_config', CONFIG).estacoes || []);
+  if(!supabaseClient){
+    return (Store.get('galp_config', CONFIG).estacoes || []);
+  }
   try{
     const { data, error } = await supabaseClient
       .from('galp_estacoes_config')
@@ -137,10 +87,10 @@ async function carregarEstacoes(){
       disponivel: e.disponivel
     }));
 
-    // Guarda também no galp_config para o cliente ler
     const cfg = Store.get('galp_config', CONFIG);
     cfg.estacoes = estacoes;
     Store.set('galp_config', cfg);
+    console.log('✅ Estações carregadas:', estacoes.length);
     return estacoes;
   }catch(err){
     console.error('❌ Erro estações:', err);
@@ -148,8 +98,17 @@ async function carregarEstacoes(){
   }
 }
 
+/* ============================================================
+   CARREGAR PEDIDOS ⭐
+   ============================================================ */
 async function carregarPedidos(){
-  if(!supabaseClient) return;
+  console.log('🔄 A carregar pedidos do Supabase...');
+  
+  if(!supabaseClient){
+    console.warn('⚠️ Sem Supabase — mostrando apenas cache local');
+    return Store.get('galp_pedidos', []);
+  }
+  
   try{
     const { data, error } = await supabaseClient
       .from('pedidos_galp')
@@ -157,6 +116,8 @@ async function carregarPedidos(){
       .order('created_at', { ascending: false });
 
     if(error) throw error;
+
+    console.log('📦 Pedidos recebidos do Supabase:', data?.length || 0);
 
     const pedidos = (data || []).map(p => ({
       id: 'G' + p.id,
@@ -172,20 +133,24 @@ async function carregarPedidos(){
       codigo: p.codigo_retirada || '—',
       estacaoNome: p.estacao_nome,
       estacaoEndereco: p.estacao_endereco,
-      modo: 'retirada',                    // sempre retirada agora
+      modo: 'retirada',
       taxa: p.taxa,
       total: p.total,
       status: p.status
     }));
 
     Store.set('galp_pedidos', pedidos);
+    console.log('✅ Pedidos carregados:', pedidos.length);
     return pedidos;
   }catch(err){
-    console.error('❌', err);
+    console.error('❌ Erro ao carregar pedidos:', err);
     return Store.get('galp_pedidos', []);
   }
 }
 
+/* ============================================================
+   INIT
+   ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
   const app = $('#adminApp');
   if(app) app.style.visibility = 'visible';
@@ -195,19 +160,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const horaFmt = d.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'});
   if($('#welcomeDate')) $('#welcomeDate').textContent = `${dataFmt} · ${horaFmt}`;
 
-  // ⭐ Carrega do Supabase PRIMEIRO
+  // Carrega tudo do Supabase
   await carregarProdutos();
   await carregarEstacoes();
   await carregarPedidos();
 
   renderTudo();
 
-  // Atualiza a cada 30s
+  // Atualiza pedidos a cada 30s
   setInterval(async () => {
-    await carregarProdutos();
-    await carregarEstacoes();
-    renderSwitches();
-    renderSwitchesEstacoes();
+    await carregarPedidos();
+    renderPendentes();
+    renderTabela();
   }, 30000);
 });
 
@@ -250,7 +214,6 @@ function renderSwitches(){
     chk.addEventListener('change', async () => {
       const novoEstado = chk.checked;
 
-      // 1) GRAVA NO SUPABASE (servidor central)
       if(supabaseClient){
         const { error } = await supabaseClient
           .from('galp_produtos_config')
@@ -259,14 +222,12 @@ function renderSwitches(){
 
         if(error){
           console.error('❌', error);
-          alert('Erro ao guardar no servidor. Tenta novamente.');
+          alert('Erro ao guardar.');
           chk.checked = !novoEstado;
           return;
         }
-        console.log(`✅ Supabase: ${chk.dataset.id} → ${novoEstado ? 'ON' : 'OFF'}`);
       }
 
-      // 2) Atualiza cache local
       const lista = Store.get('galp_produtos', PRODUTOS_PADRAO);
       const p = lista.find(x => x.id === chk.dataset.id);
       if(p){ p.disponivel = novoEstado; Store.set('galp_produtos', lista); }
@@ -303,7 +264,6 @@ function renderSwitchesEstacoes(){
     chk.addEventListener('change', async () => {
       const novoEstado = chk.checked;
 
-      // 1) GRAVA NO SUPABASE
       if(supabaseClient){
         const { error } = await supabaseClient
           .from('galp_estacoes_config')
@@ -312,14 +272,12 @@ function renderSwitchesEstacoes(){
 
         if(error){
           console.error('❌', error);
-          alert('Erro ao guardar no servidor. Tenta novamente.');
+          alert('Erro ao guardar.');
           chk.checked = !novoEstado;
           return;
         }
-        console.log(`✅ Supabase: ${chk.dataset.estacao} → ${novoEstado ? 'ON' : 'OFF'}`);
       }
 
-      // 2) Atualiza cache local
       const cfg = Store.get('galp_config', CONFIG);
       const est = cfg.estacoes.find(x => x.id === chk.dataset.estacao);
       if(est){ est.disponivel = novoEstado; Store.set('galp_config', cfg); }
@@ -335,7 +293,7 @@ function renderPendentes(){
     p.status === 'PENDENTE' || p.status === 'PREPARACAO'
   );
 
-  $('#pendentesCount').textContent = pendentes.length;
+  if($('#pendentesCount')) $('#pendentesCount').textContent = pendentes.length;
 
   const container = $('#pendentesList');
   if(!container) return;
@@ -361,16 +319,14 @@ function renderPendentes(){
           <div class="receipt-row"><span>Cliente</span><b>${p.cliente}</b></div>
           <div class="receipt-row"><span>Telefone</span><b>${p.telefone}</b></div>
           <div class="receipt-row"><span>Estação</span><b>⛽ ${p.estacaoNome || '—'}</b></div>
-          <div class="receipt-row"><span>Endereço</span><b>${p.estacaoEndereco || '—'}</b></div>
           <div class="receipt-row"><span>Combustível</span><b>${p.produto}</b></div>
           <div class="receipt-row"><span>Quantidade</span><b>${p.quantidade} ${p.unidade}</b></div>
-          <div class="receipt-row"><span>Taxa de serviço</span><b>${p.taxa} MT</b></div>
+          <div class="receipt-row"><span>Taxa</span><b>${p.taxa} MT</b></div>
           <div class="receipt-row total"><span>TOTAL</span><b>${p.total} MT</b></div>
         </div>
         <div class="receipt-foot">
           <span class="status-dot" style="background:${label.color}"></span>
           <span style="color:${label.color};font-weight:600">${label.txt}</span>
-
           <div class="action-buttons">
             <button class="btn-action btn-imprimir-mini" data-imprimir="${p.id}">🖨️ Recibo</button>
             <button class="btn-action btn-entregue" data-entregue="${p.id}">✅ Entregue</button>
@@ -381,23 +337,15 @@ function renderPendentes(){
     `;
   }).join('');
 
-  $$('[data-entregue]').forEach(b => {
-    b.addEventListener('click', () => {
-      if(!confirm('Confirmar que este pedido foi retirado?')) return;
-      atualizarStatus(b.dataset.entregue, 'ENTREGUE');
-    });
-  });
-
-  $$('[data-cancelar]').forEach(b => {
-    b.addEventListener('click', () => {
-      if(!confirm('Cancelar este pedido?')) return;
-      atualizarStatus(b.dataset.cancelar, 'CANCELADO');
-    });
-  });
-
-  $$('[data-imprimir]').forEach(b => {
-    b.addEventListener('click', () => imprimirRecibo(b.dataset.imprimir));
-  });
+  $$('[data-entregue]').forEach(b => b.addEventListener('click', () => {
+    if(!confirm('Confirmar entrega?')) return;
+    atualizarStatus(b.dataset.entregue, 'ENTREGUE');
+  }));
+  $$('[data-cancelar]').forEach(b => b.addEventListener('click', () => {
+    if(!confirm('Cancelar?')) return;
+    atualizarStatus(b.dataset.cancelar, 'CANCELADO');
+  }));
+  $$('[data-imprimir]').forEach(b => b.addEventListener('click', () => imprimirRecibo(b.dataset.imprimir)));
 }
 
 function renderTabela(){
@@ -405,14 +353,14 @@ function renderTabela(){
   let filtrados = pedidos;
   if(filtroAtual !== 'todos') filtrados = pedidos.filter(p => p.status === filtroAtual);
 
-  $('#totalRegistos').textContent = `${filtrados.length} registos`;
+  if($('#totalRegistos')) $('#totalRegistos').textContent = `${filtrados.length} registos`;
 
   const body = $('#tabelaPedidosBody');
   if(!body) return;
 
   if(!filtrados.length){
     body.innerHTML = `<tr><td colspan="12" class="empty">Sem registos.</td></tr>`;
-    $('#totalGeral').textContent = '0 MT';
+    if($('#totalGeral')) $('#totalGeral').textContent = '0 MT';
     return;
   }
 
@@ -455,7 +403,7 @@ function renderTabela(){
   }).join('');
 
   const total = filtrados.reduce((s, p) => s + (p.total || 0), 0);
-  $('#totalGeral').textContent = `${total} MT`;
+  if($('#totalGeral')) $('#totalGeral').textContent = `${total} MT`;
 
   body.querySelectorAll('[data-entregue]').forEach(b => b.addEventListener('click', () => {
     if(!confirm('Marcar como ENTREGUE?')) return;
@@ -468,7 +416,7 @@ function renderTabela(){
   body.querySelectorAll('[data-imprimir]').forEach(b => b.addEventListener('click', () => imprimirRecibo(b.dataset.imprimir)));
 }
 
-/* ============ FILTROS ============ */
+/* FILTROS */
 $$('.filtro-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     $$('.filtro-btn').forEach(b => b.classList.remove('active'));
@@ -478,7 +426,7 @@ $$('.filtro-btn').forEach(btn => {
   });
 });
 
-/* ============ ATUALIZAR STATUS ============ */
+/* ATUALIZAR STATUS */
 async function atualizarStatus(id, novoStatus){
   const pedidos = Store.get('galp_pedidos', []);
   const p = pedidos.find(x => x.id === id);
@@ -496,7 +444,7 @@ async function atualizarStatus(id, novoStatus){
       }
     }catch(err){
       console.error('❌', err);
-      alert('Erro ao comunicar com o servidor.');
+      alert('Erro.');
       return;
     }
   } else {
@@ -512,7 +460,7 @@ async function atualizarStatus(id, novoStatus){
   renderTabela();
 }
 
-/* ============ IMPRIMIR (mantém o que já tinhas) ============ */
+/* IMPRIMIR */
 function imprimirRecibo(id){
   const pedidos = Store.get('galp_pedidos', []);
   const p = pedidos.find(x => x.id === id);
@@ -523,7 +471,6 @@ function imprimirRecibo(id){
   doc.save(`Recibo_${p.id.slice(-6)}.pdf`);
 }
 
-/* ============ EXTRATO COMPLETO ============ */
 $('#imprimirExtrato')?.addEventListener('click', () => {
   const pedidos = Store.get('galp_pedidos', []);
   let filtrados = pedidos;
@@ -538,7 +485,6 @@ $('#imprimirExtrato')?.addEventListener('click', () => {
   doc.rect(0, 0, pageW, 22, 'F');
   doc.setFillColor(255, 102, 0);
   doc.triangle(0, 22, 35, 22, 0, 8, 'F');
-
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
@@ -546,41 +492,32 @@ $('#imprimirExtrato')?.addEventListener('click', () => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text('Quelimane · Moçambique', margin, 16);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('EXTRATO DE PEDIDOS', pageW - margin, 10, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text(`Emitido em: ${new Date().toLocaleString('pt-PT')}`, margin, 30);
-  doc.text(`Total: ${filtrados.length}`, pageW - margin, 30, { align: 'right' });
 
   const linhas = filtrados.map((p, i) => [
-    i + 1, p.id.slice(-6), new Date(p.data).toLocaleDateString('pt-PT'),
+    i + 1, p.codigo || p.id.slice(-6), new Date(p.data).toLocaleDateString('pt-PT'),
     p.cliente, p.telefone || '—', p.estacaoNome || '—', p.produto,
     `${p.quantidade} ${p.unidade || 'L'}`,
-    p.modo === 'entrega' ? (p.velocidade === 'premium' ? 'Premium' : 'Normal') : 'Levant.',
-    p.zona || '—', p.entrega ? `${p.entrega} MT` : '—', `${p.total} MT`, p.status
+    p.taxa ? `${p.taxa} MT` : '—',
+    `${p.total} MT`, p.status
   ]);
   const total = filtrados.reduce((s, p) => s + (p.total || 0), 0);
 
   doc.autoTable({
     startY: 36,
-    head: [['#','ID','Data','Cliente','Telefone','Estação','Combustível','Qtd','Modo','Zona','Taxa','Total','Estado']],
+    head: [['#','Código','Data','Cliente','Telefone','Estação','Combustível','Qtd','Taxa','Total','Estado']],
     body: linhas,
-    foot: [['','','','','','','','','','','TOTAL:',`${total} MT`,'']],
+    foot: [['','','','','','','','','TOTAL:',`${total} MT`,'']],
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor:[26,14,5], textColor:[255,255,255], fontStyle:'bold', halign:'center' },
+    headStyles: { fillColor:[26,14,5], textColor:[255,255,255], fontStyle:'bold' },
     footStyles: { fillColor:[255,210,0], textColor:[26,14,5], fontStyle:'bold' },
-    alternateRowStyles: { fillColor:[255,245,235] },
     margin: { left: margin, right: margin }
   });
 
   doc.save(`Extrato_GALP_${new Date().toISOString().slice(0,10)}.pdf`);
 });
 
-/* ============ RECIBOS MINI ============ */
+/* RECIBOS MINI */
 $('#imprimirMini')?.addEventListener('click', () => {
   const pedidos = Store.get('galp_pedidos', []);
   let filtrados = pedidos;
@@ -607,7 +544,7 @@ $('#imprimirMini')?.addEventListener('click', () => {
   doc.save(`Recibos_GALP_${filtrados.length}.pdf`);
 });
 
-/* ============ DESENHOS (mini + grande) ============ */
+/* RECIBO MINI */
 function desenharReciboMini(doc, p, x, y, w, h){
   const escuro = [26, 14, 5], laranja = [255, 102, 0];
   const cinzaClaro = [230, 230, 230], cinza = [120, 120, 120];
@@ -624,7 +561,7 @@ function desenharReciboMini(doc, p, x, y, w, h){
   doc.setFont('helvetica', 'bold'); doc.setFontSize(6);
   doc.text('GALP QUELIMANE', x + 3, y + 4.5);
   doc.setFontSize(5); doc.setTextColor(255, 210, 0);
-  doc.text(`#${p.id.slice(-6)}`, x + w - 1.5, y + 4.5, { align: 'right' });
+  doc.text(`#${p.codigo || p.id.slice(-6)}`, x + w - 1.5, y + 4.5, { align: 'right' });
 
   let cy = y + 8;
   doc.setDrawColor(...cinzaClaro); doc.setLineWidth(0.15);
@@ -651,17 +588,6 @@ function desenharReciboMini(doc, p, x, y, w, h){
   doc.setFont('helvetica', 'normal'); doc.setFontSize(5); doc.setTextColor(60, 60, 60);
   doc.text(`${p.quantidade} ${p.unidade || 'L'} × ${p.precoUnit || '—'} MT`, x + 2, cy); cy += 3.5;
 
-  doc.setDrawColor(...cinzaClaro); doc.line(x + 2, cy, x + w - 2, cy); cy += 3;
-  doc.setTextColor(...cinza); doc.setFontSize(4.5);
-  doc.text('MODO', x + 2, cy); cy += 2.5;
-  doc.setTextColor(20, 20, 30); doc.setFont('helvetica', 'normal'); doc.setFontSize(5);
-  const modoTxt = p.modo === 'entrega'
-    ? `${p.velocidade === 'premium' ? 'PREMIUM' : 'Normal'} — ${p.zona || ''}`
-    : 'Levantamento';
-  doc.text(modoTxt.substring(0, 28), x + 2, cy); cy += 2.8;
-  doc.setTextColor(60, 60, 60);
-  doc.text(`Taxa: ${p.entrega ? p.entrega + ' MT' : '—'}`, x + 2, cy);
-
   const totalY = y + h - 8;
   doc.setFillColor(...escuro); doc.rect(x, totalY, w, 8, 'F');
   doc.setFillColor(...laranja); doc.rect(x, totalY, 2, 8, 'F');
@@ -670,13 +596,14 @@ function desenharReciboMini(doc, p, x, y, w, h){
   doc.setTextColor(255, 255, 255); doc.setFontSize(9);
   doc.text(`${p.total} MT`, x + w - 2, totalY + 5.5, { align: 'right' });
 
-  const sc = { PENDENTE:[255,210,0], PREPARACAO:[77,159,255], CAMINHO:[255,168,77], ENTREGUE:[0,200,83], CANCELADO:[227,6,19] };
+  const sc = { PENDENTE:[255,210,0], PREPARACAO:[77,159,255], ENTREGUE:[0,200,83], CANCELADO:[227,6,19] };
   const cor = sc[p.status] || [150,150,150];
   doc.setFillColor(...cor); doc.circle(x + 3, y + h - 1.5, 0.7, 'F');
   doc.setTextColor(...cor); doc.setFontSize(4);
   doc.text(p.status, x + 5, y + h - 0.7);
 }
 
+/* RECIBO GRANDE */
 function desenharReciboGrande(doc, p){
   const x = 8, w = 148 - 16;
   const escuro = [26, 14, 5], laranja = [255, 102, 0];
@@ -692,7 +619,7 @@ function desenharReciboGrande(doc, p){
   doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
   doc.text('PEDIDO', 148 - x, 11, { align: 'right' });
   doc.setFontSize(14); doc.setTextColor(255, 210, 0);
-  doc.text(`#${p.id.slice(-6)}`, 148 - x, 18, { align: 'right' });
+  doc.text(`#${p.codigo || p.id.slice(-6)}`, 148 - x, 18, { align: 'right' });
 
   let y = 34;
   doc.setTextColor(120, 120, 120); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
@@ -726,18 +653,11 @@ function desenharReciboGrande(doc, p){
     ['Preço unitário', `${p.precoUnit} MT`],
     ['Subtotal', `${p.subtotal} MT`],
   ]);
-
-  const modoTxt = p.modo === 'entrega'
-    ? `${p.velocidade === 'premium' ? 'Premium' : 'Normal'} — ${p.zona || '—'}`
-    : 'Levantamento';
-  const lE = [['Modo', modoTxt], ['Tempo', p.tempo || '—']];
-  if(p.modo === 'entrega'){
-    lE.push(['Endereço', p.endereco || '—']);
-    if(p.referencia) lE.push(['Referência', p.referencia]);
-  }
-  if(p.observacoes) lE.push(['Obs.', p.observacoes]);
-  lE.push(['Taxa', p.entrega ? `${p.entrega} MT` : '—']);
-  caixa('Entrega', lE);
+  caixa('Retirada', [
+    ['Modo', 'Retirada no posto'],
+    ['Taxa', p.taxa ? `${p.taxa} MT` : '—'],
+    ['Código', p.codigo || '—'],
+  ]);
 
   y += 2;
   const tH = 16;
@@ -751,7 +671,7 @@ function desenharReciboGrande(doc, p){
   doc.text('GALP Quelimane · Documento gerado automaticamente', 74, 200, { align: 'center' });
 }
 
-/* ============ FECHAR DIA / APAGAR ============ */
+/* FECHAR DIA / APAGAR */
 document.addEventListener('click', async e => {
   if(e.target.closest('#fecharDia')){
     const pedidos = Store.get('galp_pedidos', []);
